@@ -379,3 +379,19 @@ details.math li span{display:block;font-size:13px;color:var(--muted)}
 .toast button{border:0;background:none;color:var(--accent-soft);font-weight:800;padding:6px 8px;text-transform:uppercase;font-size:13px;letter-spacing:.04em}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important} }
 @media (min-width:700px){ .tiles{grid-template-columns:repeat(4,minmax(0,1fr))} }
+
+/* ---------- Check-ins, picking your own week ---------- */
+.nudge .cardhead h2{display:flex;align-items:center;gap:6px}
+.nudge .cardhead h2 svg.i{width:17px;height:17px;color:var(--td-ink)}
+.nlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nlist li{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:14px;padding:10px 10px 10px 12px}
+.nlist b{font-weight:600}
+.nlist .hint{font-size:13px}
+.banner>svg.i{color:var(--td-ink);width:24px;height:24px}
+.stats4{grid-template-columns:repeat(4,1fr)}
+.stats4 b{font-size:17px}
+.stats4 span{font-size:10.5px}
+.review .notes{margin-top:12px}
+.pill.info{background:var(--sunk);color:var(--muted)}
+.btn[aria-pressed="true"] svg.i{fill:currentColor;color:var(--carbs)}
+.days button:disabled{opacity:.35}

@@ -20,7 +20,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
 - **Recipe book:** 85 easy recipes with step-by-step guides.
   - 45 are lighter, higher-protein versions of the most popular recipes of recent years, from Google's yearly trending lists, TikTok, NYT Cooking, Allrecipes and others. Each one says why it's popular.
   - Filter by meal or Popular, search by ingredient, and log a serving in one tap.
-- **Meal plans:** built from the recipe book.
+- **Meal plans:** built for you from the recipe book, or hand-picked. Star favorites, add any recipe to any day (with next-day leftovers), or start an empty week and choose each meal.
   - The week is built around your diet, allergies, cooking time and favorite foods.
   - Dinners turn into next-day lunches.
   - Portions are scaled to your target.
@@ -30,6 +30,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - Weekly rate and a projected goal date.
   - Calorie history and a forgiving streak.
   - Adaptive burn estimate: after about 2 weeks of logging, the app corrects its estimate of your daily burn.
+- **Check-ins:** a morning card (weigh in, breakfast, water) and an evening card on Today, plus a weekly check-in on Progress with one thing to try next week.
 - **Water tracking.**
 - **Optional Claude features** (needs your own Anthropic API key, set in **Me → Settings**):
   - Custom-written weekly meal plans.

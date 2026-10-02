@@ -61,9 +61,12 @@ function score(r, h, recentIds, rand){
   if ((h.flags||{}).bp && /soy sauce|bacon|deli|feta/.test(recipeText(r))) s -= 0.5;
   if (recentIds.has(r.id)) s -= 1.2;                          // you ate it last week
   if (r.fame) s += 0.6;                                       // popular recipes come up a bit more often
+  if (starred().includes(r.id)) s += 1.2;                     // and ones you starred more often still
   s += rand()*1.6;
   return s;
 }
+
+function starred(){ return (CL.store && CL.store.S && CL.store.S.profile.recipeFavs) || []; }
 
 /* Small seeded random so "Shuffle" gives a new week but a plan can be rebuilt the same way. */
 function rng(seed){
@@ -146,6 +149,7 @@ function usage(plan){
   return n;
 }
 function finish(plan){
+  if (plan.custom) customFactor(plan);
   const n=usage(plan), f=plan.factor||1, hh=plan.household||1;
   for (const r of plan.recipes){
     const eaten=n[r.id]||0;
@@ -239,7 +243,7 @@ function prepSteps(plan){
     const next=d[i+1] && d[i+1].lunch===r.id;
     steps.push(name+": cook "+r.name.toLowerCase()+(next? ". Pack a portion straight into a container for tomorrow's lunch." : "."));
   }
-  const reheat=[[2,"Wednesday"],[5,"Saturday"],[6,"Sunday"]].filter(([i])=>d.slice(0,i).some(x=>x.dinner===d[i].dinner)).map(x=>x[1]);
+  const reheat=[[2,"Wednesday"],[5,"Saturday"],[6,"Sunday"]].filter(([i])=>d[i].dinner && d.slice(0,i).some(x=>x.dinner===d[i].dinner)).map(x=>x[1]);
   if (reheat.length) steps.push(reheat.join(" and ")+": no cooking. Dinner is leftovers from earlier in the week.");
   const freezer=plan.recipes.filter(r=>r.freezeExtra);
   if (freezer.length) steps.push("Freeze the extra "+freezer.map(r=>r.name.toLowerCase()).join(" and ")+" in single portions for a no-cook night later.");
@@ -268,6 +272,34 @@ function applySwap(plan, oldId, newRecipe){
   return next;
 }
 
+/* ---------- Picking your own recipes ---------- */
+/* An empty week the person fills from the recipe book. */
+function emptyWeek(p, h){
+  h=h||{};
+  const plan={source:"library", custom:true, factor:1, mealsKcal:(p.target||2000)-(p.flex||0), household:Math.max(1, h.household||1),
+    recipes:[], days:DAYN.map(()=>({breakfast:null, lunch:null, dinner:null, snack:null})), checked:{}, createdAt:Date.now()};
+  return finish(plan);
+}
+/* Portions for a hand-picked week: sized from the days that have every meal filled in. */
+function customFactor(plan){
+  const byId=Object.fromEntries(plan.recipes.map(r=>[r.id,r]));
+  const full=plan.days.filter(d=>SLOT_KEYS.every(s=>d[s]));
+  plan.factor = full.length && plan.mealsKcal? Math.min(2, Math.max(0.75, Math.round(plan.mealsKcal/avgDay(full, byId)*4)/4)) : 1;
+  const filled=plan.days.reduce((a,d)=>a+SLOT_KEYS.filter(s=>d[s]).length, 0);
+  plan.summary = filled? "Your own picks from the recipe book: "+filled+" of 28 meals planned. "+(full.length? (plan.factor===1? "Eat one serving of each" : "Eat "+U.frac(plan.factor)+" servings of each")+" to hit your target." : "Portions are sized once a day has all four meals.")
+    : "Your own week. Tap Choose on any meal to fill it in from the recipe book.";
+}
+/* Put a recipe in one meal slot (or clear it with null). Returns a new plan. */
+function setSlot(plan, di, slot, recipe){
+  const next=U.clone(plan);
+  if (recipe && !next.recipes.some(x=>x.id===recipe.id)) next.recipes.push(U.clone(recipe));
+  next.days[di][slot]=recipe? recipe.id : null;
+  const used=new Set(next.days.flatMap(d=>SLOT_KEYS.map(s=>d[s])));
+  next.recipes=next.recipes.filter(x=>used.has(x.id));
+  if (next.source==="library") finish(next);
+  return next;
+}
+
 /* ---------- Shared helpers for the screens ---------- */
 function recipeById(plan, id){ return id? (plan.recipes||[]).find(r=>r.id===id) || null : null; }
 function portion(plan){ return plan.factor||1; }
@@ -289,5 +321,5 @@ function ingredientLines(r){
   });
 }
 
-CL.planner = {SLOT_KEYS, DAYN, allowed, buildWeek, finish, grocery, swapOptions, applySwap, recipeById, portion, slotKcal, dayTotal, ingredientLines, usage};
+CL.planner = {SLOT_KEYS, DAYN, allowed, buildWeek, finish, grocery, swapOptions, applySwap, emptyWeek, setSlot, starred, recipeById, portion, slotKcal, dayTotal, ingredientLines, usage};
 })();

@@ -214,6 +214,7 @@ function settingsHTML(){
   (isStandalone()? "" : '<section class="install"><h3>Put it on your home screen</h3><ol><li>Open this page in <b>Safari</b> on your iPhone.</li><li>Tap the <b>Share</b> button '+icon("share")+'.</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol><p class="hint">It then opens full-screen like an app, works offline, and can use the camera to scan barcodes. Data you log in Safari doesn\'t move to the home-screen app on its own, so install it first or use Backup below.</p></section>')+
   '<section><h3>Daily targets</h3><div class="seg" role="radiogroup"><label><input type="radio" name="gmode" value="plan"'+(custom? "" : " checked")+'>From my plan</label><label><input type="radio" name="gmode" value="custom"'+(custom? " checked" : "")+'>My own numbers</label></div>'+
     '<div class="fgrid" id="customGoals"'+(custom? "" : " hidden")+'><div class="field"><label for="gK">Calories</label><input id="gK" type="number" inputmode="numeric" value="'+(pr.goal||2000)+'"></div><div class="field"><label for="gP">Protein g</label><input id="gP" type="number" inputmode="numeric" value="'+(pr.protein||0)+'"></div><div class="field"><label for="gC">Carbs g</label><input id="gC" type="number" inputmode="numeric" value="'+(pr.carbs||0)+'"></div><div class="field"><label for="gF">Fat g</label><input id="gF" type="number" inputmode="numeric" value="'+(pr.fat||0)+'"></div></div></section>'+
+  '<section><h3>Check-ins</h3><label class="check"><input type="checkbox" id="nudgeToggle"'+(pr.nudges===false? '' : ' checked')+'><span>Show a morning check-in (weigh in, breakfast, water) and an evening check-in on Today. Each one can be hidden for the day with its ×.</span></label></section>'+
   '<section><h3>Water goal</h3><div class="row"><input id="waterGoal" type="number" inputmode="numeric" min="1" max="20" value="'+(pr.waterGoal||8)+'" style="max-width:90px"><span class="hint">glasses a day ('+(St.isUS()? "8 oz" : "250 ml")+' each)</span></div></section>'+
   '<section><h3>'+icon("sparkle")+' Claude (optional)</h3>'+
     '<p class="hint">Turns on custom-written meal plans, recipe swaps, nutrition-label photos and meal-photo estimates. Without it, everything else still works, including the recipe book and barcode scanner.</p>'+
@@ -331,6 +332,7 @@ function onChange(e){
     if (k==="goal" && v<800) return;
     pr[k]=v; St.changed(); return;
   }
+  if (t.id==="nudgeToggle"){ pr.nudges=t.checked; St.changed(); return; }
   if (t.id==="waterGoal"){ const v=Math.round(U.num(t.value)); if (v>=1 && v<=20){ pr.waterGoal=v; St.changed(); } return; }
   if (t.name==="theme"){ CL.app.setTheme(t.value); return; }
   if (t.id==="importInput"){ const f=t.files && t.files[0]; if (f) f.text().then(doImport); }

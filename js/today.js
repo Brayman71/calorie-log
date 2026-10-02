@@ -87,6 +87,49 @@ function plannedCard(date){
   return '<section class="card"><div class="cardhead"><h2>On your plan</h2><button type="button" class="linkbtn" data-tabgo="plan">See recipes</button></div><ul class="planned">'+rows+'</ul></section>';
 }
 
+/* Morning and evening check-ins: the one or two things worth doing right now. Each part can be dismissed for the day. */
+function nudgePart(){
+  const h=new Date().getHours();
+  return h>=4 && h<11? "am" : h>=19? "pm" : null;
+}
+function nudgeCard(date, G, T){
+  const S=CL.store.S, pr=S.profile, today=U.today(), part=nudgePart();
+  if (date!==today || pr.nudges===false || !part || pr.nudgeHide===today+":"+part) return "";
+  const day=CL.store.peekDay(today), has=m=>day.entries.some(e=>e.meal===m);
+  const rows=[];
+  if (part==="am"){
+    if (!S.weights.some(w=>w.date===today) && (S.weights.length || S.health)){
+      rows.push('<li><div class="grow"><b>Weigh in</b><div class="hint">After the bathroom, before breakfast</div></div>'+
+        '<form class="row" id="nudgeW" style="flex-wrap:nowrap"><input type="number" id="nudgeWv" inputmode="decimal" step="0.1" placeholder="'+CL.store.wUnit()+'" aria-label="Weight in '+CL.store.wUnit()+'" style="width:86px;min-height:40px;padding:8px 10px"><button class="btn small primary" type="submit">Save</button></form></li>');
+    }
+    if (!has("Breakfast")){
+      const plan=S.plans[U.weekStart(today)], pd=plan && (plan.days||[])[U.dayIdx(today)], r=pd && CL.planner.recipeById(plan, pd.breakfast);
+      rows.push('<li><div class="grow"><b>Log breakfast</b><div class="hint">'+(r? "Planned: "+esc(r.name) : "Scan it or search for it")+'</div></div>'+
+        (r? '<button type="button" class="btn small soft" data-logplan="breakfast">Ate it</button>' : '<button type="button" class="btn small soft" data-nscan="Breakfast">'+icon("scan")+'Scan</button>')+
+        '<button type="button" class="iconbtn" data-add="Breakfast" aria-label="Add breakfast">'+icon("plus")+'</button></li>');
+    }
+    if (!(day.water>0)) rows.push('<li><div class="grow"><b>Start with a glass of water</b><div class="hint">Easy first win of the day</div></div><button type="button" class="btn small soft" data-water="+1">'+icon("plus")+'1 glass</button></li>');
+  } else {
+    if (!day.entries.length) rows.push('<li><div class="grow"><b>Nothing logged today</b><div class="hint">A rough log beats none. Quick add takes 5 seconds.</div></div><button type="button" class="btn small soft" data-add="Dinner">Log food</button></li>');
+    else if (!has("Dinner")) rows.push('<li><div class="grow"><b>Log dinner</b><div class="hint">'+(G.goal-T.kcal>0? U.fmt(G.goal-T.kcal)+" kcal left for today" : "Close out the day")+'</div></div><button type="button" class="btn small soft" data-add="Dinner">'+icon("plus")+'Dinner</button></li>');
+    const left=G.goal-T.kcal;
+    if (day.entries.length && has("Dinner") && left>150) rows.push('<li><div class="grow"><b>'+U.fmt(left)+' kcal left</b><div class="hint">Room for a snack if you\'re hungry. Under is fine too; it banks for the week.</div></div></li>');
+  }
+  if (!rows.length) return "";
+  return '<section class="card nudge"><div class="cardhead"><h2>'+(part==="am"? icon("sun")+"Morning check-in" : icon("check")+"Evening check-in")+'</h2>'+
+    '<button type="button" class="iconbtn ghost" data-nudgex="'+part+'" aria-label="Hide for today">'+icon("x")+'</button></div><ul class="nlist">'+rows.join("")+'</ul></section>';
+}
+/* Monday to Wednesday: point to last week's check-in until it's been seen. */
+function reviewBanner(date){
+  const S=CL.store.S, today=U.today();
+  if (date!==today || U.dayIdx(today)>2) return "";
+  const last=U.addDays(U.weekStart(today), -7);
+  if (S.profile.reviewSeen===last) return "";
+  let n=0; for (let i=0;i<7;i++) if (CL.store.peekDay(U.addDays(last,i)).entries.length) n++;
+  if (!n) return "";
+  return '<section class="card banner">'+icon("chart")+'<div class="grow"><b>Your weekly check-in is ready</b><p>How last week went, and one thing to try this week.</p></div><button type="button" class="btn small primary" data-review="1">See it</button></section>';
+}
+
 function mealCard(date, meal){
   const list=CL.store.peekDay(date).entries.filter(e=>e.meal===meal);
   const kcal=list.reduce((a,e)=>a+(e.kcal||0),0);
@@ -115,6 +158,9 @@ function render(){
     x+='<section class="card banner"><div class="grow"><b>Set up your plan</b><p>Answer a few questions and the app works out a calorie target that doesn\'t feel like a punishment.</p></div><button type="button" class="btn primary small" data-tabgo="me">Start</button></section>';
   }
 
+  x+=reviewBanner(date);
+  x+=nudgeCard(date, G, T);
+
   // Calories left
   let bigVal, bigLbl;
   if (!over){ bigVal=U.fmt(left); bigLbl="kcal left"; }
@@ -138,6 +184,18 @@ function render(){
   el.innerHTML=x;
 }
 
+/* The weigh-in box in the morning check-in */
+function onSubmit(e){
+  if (e.target.id!=="nudgeW") return;
+  e.preventDefault();
+  const v=U.num($("nudgeWv").value), kg=CL.store.fromDisp(v);
+  if (!(kg>=30 && kg<=320)){ $("nudgeWv").focus(); I.toast("Enter your weight in "+CL.store.wUnit()+"."); return; }
+  CL.store.logWeight(U.today(), kg);
+  if (CL.store.S.health) CL.store.S.health.weightKg=CL.store.latestKg();
+  CL.store.changed();
+  I.toast("Saved "+U.g1(v)+" "+CL.store.wUnit());
+}
+
 /* Clicks on the Today screen */
 function onClick(ev){
   const b=ev.target.closest("button"); if (!b) return;
@@ -150,6 +208,9 @@ function onClick(ev){
   if (b.dataset.copyday){ I.copyEntries(U.addDays(date,-1), date); return; }
   if (b.dataset.tabgo){ CL.app.setTab(b.dataset.tabgo); return; }
   if (b.dataset.logplan){ CL.planUI.logSlot(date, b.dataset.logplan); return; }
+  if (b.dataset.nscan){ CL.add.open({meal:b.dataset.nscan, date}); CL.add.openScanner(); return; }
+  if (b.dataset.nudgex){ CL.store.S.profile.nudgeHide=U.today()+":"+b.dataset.nudgex; CL.store.changed(); return; }
+  if (b.dataset.review){ CL.store.S.profile.reviewSeen=U.addDays(U.weekStart(U.today()), -7); CL.store.changed(); CL.app.setTab("progress"); return; }
   if (b.dataset.water){
     const d=CL.store.day(date), v=b.dataset.water;
     if (v==="+1") d.water=(d.water||0)+1;
@@ -179,5 +240,5 @@ function mealMenu(date, meal){
   };
 }
 
-CL.today={render, onClick, weekInfo};
+CL.today={render, onClick, onSubmit, weekInfo};
 })();

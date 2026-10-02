@@ -43,6 +43,7 @@ function wire(){
   document.querySelector(".tabbar").addEventListener("click", e=>{ const b=e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); });
   $("fab").onclick=()=>CL.add.open({date:CL.state.tab==="today"? CL.state.date : U.today()});
   $("screen-today").addEventListener("click", CL.today.onClick);
+  $("screen-today").addEventListener("submit", CL.today.onSubmit);
   $("screen-plan").addEventListener("click", CL.planUI.onClick);
   $("screen-plan").addEventListener("change", CL.planUI.onChange);
   $("screen-progress").addEventListener("click", CL.progress.onClick);
