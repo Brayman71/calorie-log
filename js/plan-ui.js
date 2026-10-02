@@ -63,10 +63,22 @@ function logSlot(date, slot){
   I.toast("Logged "+r.name+" · "+U.fmt(r.kcal*f)+" kcal");
 }
 
+/* Shared recipe bits: the stat line, the "why it's popular" note, ingredients and steps. */
+function metaHTML(kcal, protein, minutes){
+  return '<div class="meta num"><span>'+U.fmt(kcal)+' kcal</span><span>'+Math.round(protein)+' g protein</span><span>'+icon("clock")+minutes+' min</span></div>';
+}
+function badgeHTML(r){ return r.fame? '<span class="badge">'+icon("trend")+'Popular</span>' : ""; }
+function recipeGuide(r){
+  return (r.fame? '<p class="fame">'+icon("trend")+'<span>'+esc(r.fame)+'</span></p>' : "")+
+    '<div><h3 style="margin-bottom:8px">Ingredients</h3><ul>'+P.ingredientLines(r).map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul></div>'+
+    '<div><h3 style="margin-bottom:10px">Steps</h3><ol>'+r.steps.map(t=>'<li><span>'+esc(t)+'</span></li>').join("")+'</ol></div>'+
+    (r.tip? '<p class="tip"><b>Tip:</b> '+esc(r.tip)+'</p>' : "");
+}
+
 function recipeCard(plan, wk, di, slot){
   const r=P.recipeById(plan, (plan.days[di]||{})[slot]);
   const key=di+":"+slot;
-  if (!r) return '<section class="card"><div class="slot hint">'+I.SLOT_MEAL[slot]+'</div><p class="hint">Nothing planned. Eat something you like and log it.</p></section>';
+  if (!r) return '<section class="card recipe"><div class="row" style="padding:12px;flex-wrap:nowrap;gap:12px">'+I.mealBadge(slot, "thumb")+'<div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+'</div><p class="hint">Nothing planned. Eat something you like and log it.</p></div></div></section>';
   const f=P.portion(plan), date=U.addDays(wk, di);
   const logged=CL.store.peekDay(date).entries.some(e=>e.plan===date+":"+slot);
   const leftover = slot==="lunch" && r.meal==="dinner";
@@ -80,13 +92,11 @@ function recipeCard(plan, wk, di, slot){
   } else {
     portion='<div class="portion"><b>'+U.fmt(r.kcal)+' kcal · '+r.protein+' g protein per serving</b>'+(leftover? "<br>Leftovers from dinner. Just reheat." : r.servings>1? "<br>Makes "+r.servings+" servings." : "")+'</div>';
   }
-  return '<details class="card recipe" data-rkey="'+key+'"'+(open.has(key)? " open" : "")+'><summary><div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+(leftover? " · leftovers" : "")+'</div><div class="nm">'+esc(r.name)+'</div>'+
-    '<div class="meta num">'+U.fmt(P.slotKcal(plan, r))+' kcal · '+Math.round(r.protein*f)+' g protein · '+r.minutes+' min</div></div>'+
+  return '<details class="card recipe" data-rkey="'+key+'"'+(open.has(key)? " open" : "")+'><summary>'+I.mealBadge(slot, "thumb")+'<div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+(leftover? " · leftovers" : "")+badgeHTML(r)+'</div><div class="nm">'+esc(r.name)+'</div>'+
+    metaHTML(P.slotKcal(plan, r), r.protein*f, leftover? 2 : r.minutes)+'</div>'+
     (logged? '<span class="chip good">'+icon("check")+'Logged</span>' : "")+icon("right","chev")+'</summary>'+
     '<div class="body">'+portion+
-    '<div><h3 style="margin-bottom:6px">Ingredients</h3><ul>'+P.ingredientLines(r).map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul></div>'+
-    '<div><h3 style="margin-bottom:6px">Steps</h3><ol>'+r.steps.map(t=>'<li>'+esc(t)+'</li>').join("")+'</ol></div>'+
-    (r.tip? '<p class="tip"><b>Tip:</b> '+esc(r.tip)+'</p>' : "")+
+    recipeGuide(r)+
     '<div class="row">'+(logged? "" : '<button type="button" class="btn primary small" data-logslot="'+slot+'" data-date="'+date+'">'+icon("check")+'I ate this</button>')+
     '<button type="button" class="btn small" data-swap="'+slot+'">'+icon("swap")+'Swap</button></div></div></details>';
 }
@@ -105,9 +115,11 @@ function groceryHTML(plan, wk){
 function render(){
   const el=$("screen-plan"), st=CL.state, wk=st.week, S=CL.store.S, plan=S.plans[wk];
   const thisWk=U.weekStart(U.today());
-  let x='<header class="screenhead"><h1>Meals</h1><div class="weeknav"><button type="button" class="iconbtn" data-wk="-7" aria-label="Previous week">'+icon("left")+'</button>'+
+  let x='<header class="screenhead"><div><div class="eyebrow">Plan, shop, cook</div><h1>Meals</h1></div><div class="weeknav"><button type="button" class="iconbtn" data-wk="-7" aria-label="Previous week">'+icon("left")+'</button>'+
     '<span class="date">'+esc(wk===thisWk? "This week" : wk===U.addDays(thisWk,7)? "Next week" : weekLabel(wk))+'</span>'+
     '<button type="button" class="iconbtn" data-wk="7" aria-label="Next week"'+(wk>=U.addDays(thisWk,7)? " disabled" : "")+'>'+icon("right")+'</button></div></header>';
+
+  x+='<button type="button" class="card bookcta" data-book="1">'+I.mealBadge("dinner","thumb")+'<span class="grow"><b>Recipe book</b><span class="hint">'+CL.RECIPES.length+' easy recipes, '+CL.RECIPES.filter(r=>r.fame).length+' of them popular picks from TikTok and the web</span></span>'+icon("right")+'</button>';
 
   if (gen && gen.week===wk){
     x+='<section class="card genprog" aria-live="polite"><div class="loading"><span class="spinner"></span><b id="genStatus">'+esc(gen.status)+'</b></div><p class="hint" id="genDetail">'+esc(gen.detail)+'</p><button type="button" class="btn small" data-stopgen="1" style="justify-self:start">Stop</button></section>';
@@ -151,6 +163,48 @@ function render(){
       '<p class="fine">Cooked food keeps 3–4 days in the fridge. Freeze anything you won\'t eat by then.</p></section>';
   }
   el.innerHTML=x;
+}
+
+/* Recipe book: browse every built-in recipe, read the guide, log a serving. */
+const bookState={filter:"popular", q:"", mine:true, open:null};
+const MEAL_ORDER=["breakfast","lunch","dinner","snack"];
+function bookList(){
+  const ok=new Set(P.allowed(health()).map(r=>r.id)), q=bookState.q.trim().toLowerCase(), f=bookState.filter;
+  return CL.RECIPES.filter(r=>(!bookState.mine || !CL.store.S.health || ok.has(r.id)) &&
+    (f==="all" || (f==="popular"? !!r.fame : r.meal===f)) &&
+    (!q || (r.name+" "+(r.ingredients||[]).map(i=>Array.isArray(i)? i[2] : i).join(" ")).toLowerCase().includes(q)))
+    .sort((a,b)=>(+!!b.fame)-(+!!a.fame) || MEAL_ORDER.indexOf(a.meal)-MEAL_ORDER.indexOf(b.meal));
+}
+function bookBody(){
+  const F=[["popular","Popular","trend"],["breakfast","Breakfast","coffee"],["lunch","Lunch","salad"],["dinner","Dinner","pot"],["snack","Snacks","apple"],["all","All",null]];
+  return '<div class="filters" role="group" aria-label="Show">'+F.map(([k,l,ic])=>'<button type="button" data-bf="'+k+'" aria-pressed="'+(bookState.filter===k)+'">'+(ic? icon(ic) : "")+l+'</button>').join("")+'</div>'+
+    '<div class="searchbox"><input type="search" id="bookQ" placeholder="Search recipes or ingredients" value="'+esc(bookState.q)+'" aria-label="Search recipes" autocomplete="off"></div>'+
+    (CL.store.S.health? '<label class="check"><input type="checkbox" id="bookMine"'+(bookState.mine? " checked" : "")+'><span>Only recipes that fit my diet and allergies</span></label>' : "")+
+    '<div class="book" id="bookList">'+bookItems(bookList())+'</div>';
+}
+function bookItems(list){
+  if (!list.length) return '<p class="hint">No recipes match. Try another filter.</p>';
+  return list.map(r=>'<details class="card recipe" data-bid="'+r.id+'"'+(bookState.open===r.id? " open" : "")+'><summary>'+I.mealBadge(r.meal, "thumb")+'<div class="grow"><div class="slot">'+I.SLOT_MEAL[r.meal]+badgeHTML(r)+'</div><div class="nm">'+esc(r.name)+'</div>'+metaHTML(r.kcal, r.protein, r.minutes)+'</div></summary>'+
+    '<div class="body"><div class="portion"><b>Per serving: '+U.fmt(r.kcal)+' kcal · '+r.protein+' g protein · '+r.carbs+' g carbs · '+r.fat+' g fat</b><br>Makes '+r.servings+(r.servings===1? " serving" : " servings")+'.</div>'+recipeGuide(r)+
+    '<div class="row"><button type="button" class="btn primary small" data-blog="'+r.id+'">'+icon("check")+'Log 1 serving today</button></div></div></details>').join("");
+}
+function bookSheet(){
+  const el=I.openSheet({title:"Recipe book", body:bookBody()});
+  const refresh=()=>{ $("bookList").innerHTML=bookItems(bookList()); };
+  el.onclick=e=>{
+    const sum=e.target.closest("summary");
+    if (sum){ const d=sum.parentElement; setTimeout(()=>{ if (d.open) bookState.open=d.dataset.bid; else if (bookState.open===d.dataset.bid) bookState.open=null; }, 0); return; }
+    const b=e.target.closest("button"); if (!b) return;
+    if (b.dataset.bf){ bookState.filter=b.dataset.bf; bookState.open=null; el.querySelectorAll("[data-bf]").forEach(x=>x.setAttribute("aria-pressed", x===b)); b.scrollIntoView({inline:"nearest", block:"nearest"}); refresh(); return; }
+    if (b.dataset.blog){
+      const r=CL.RECIPES.find(x=>x.id===b.dataset.blog); if (!r) return;
+      const meal=I.SLOT_MEAL[r.meal];
+      I.addEntry(U.today(), {name:r.name, serving:"1 serving", kcal:r.kcal, protein:r.protein, carbs:r.carbs, fat:r.fat, fiber:r.fiber==null? null : r.fiber, src:"recipe"}, 1, meal);
+      I.toast("Logged "+r.name+" to "+meal.toLowerCase());
+    }
+  };
+  el.oninput=e=>{ if (e.target.id==="bookQ"){ bookState.q=e.target.value; refresh(); } };
+  el.onchange=e=>{ if (e.target.id==="bookMine"){ bookState.mine=e.target.checked; refresh(); } };
 }
 
 function planMenu(){
@@ -237,6 +291,7 @@ function onClick(e){
   if (b.dataset.stopgen){ if (gen) gen.ctl.abort(); gen=null; render(); return; }
   if (b.dataset.tabgo){ CL.app.setTab(b.dataset.tabgo); return; }
   if (b.dataset.planmenu){ planMenu(); return; }
+  if (b.dataset.book){ bookSheet(); return; }
   if (b.dataset.view){ st.planView=b.dataset.view; render(); return; }
   if (b.dataset.pday){ st.planDay=+b.dataset.pday; render(); return; }
   if (b.dataset.logslot){ logSlot(b.dataset.date, b.dataset.logslot); return; }

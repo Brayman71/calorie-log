@@ -60,6 +60,7 @@ function score(r, h, recentIds, rand){
   if (h.skill!=="comfortable" && r.minutes>20) s -= 0.4;
   if ((h.flags||{}).bp && /soy sauce|bacon|deli|feta/.test(recipeText(r))) s -= 0.5;
   if (recentIds.has(r.id)) s -= 1.2;                          // you ate it last week
+  if (r.fame) s += 0.6;                                       // popular recipes come up a bit more often
   s += rand()*1.6;
   return s;
 }
@@ -166,6 +167,7 @@ function unitText(u, q){ if (!u) return ""; return q>1.001? (PLURAL[u]||u) : u; 
 function pluralName(name, q){
   if (q<=1.001) return name;
   if (/(s|sh|ch|x)$/.test(name.split(" (")[0])) return name;
+  if (/(tomato|potato)$/.test(name.split(" (")[0])) return name.replace(/^([^(]*?)(\s*\(.*)?$/, (m,a,b)=>a+"es"+(b||""));
   return name.replace(/^([^(]*?)(\s*\(.*)?$/, (m,a,b)=>a.replace(/y$/,"ie")+"s"+(b||""));
 }
 function niceQty(q, unit){
@@ -201,7 +203,7 @@ function grocery(plan){
       let [q, unit, name, section]=ing;
       // Spoons and cups add up together (as teaspoons); "black beans (15 oz)" and "black beans" are the same thing.
       if (TSP[unit]){ q*=TSP[unit]; unit="tsp"; }
-      const base=name.replace(/\s*\(.*\)/,"").toLowerCase();
+      const base=name.replace(/\s*\(.*\)/,"").toLowerCase().replace(/s$/,"");   // "egg" and "eggs" are one item
       const key=base+"|"+unit;
       const cur=sums.get(key) || {q:0, unit, name, base, section};
       cur.q+=q*mult; if (name.length>cur.name.length) cur.name=name;

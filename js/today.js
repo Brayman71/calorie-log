@@ -7,7 +7,8 @@ const {$, icon, esc}={$:CL.ui.$, icon:CL.ui.icon, esc:U.esc};
 function ring(frac, over){
   const r=36, c=2*Math.PI*r, f=Math.max(0, Math.min(1, frac));
   return '<svg class="ring'+(over? " over" : "")+'" viewBox="0 0 84 84" aria-hidden="true"><circle class="bgc" cx="42" cy="42" r="'+r+'"/>'+
-    '<circle class="fg" cx="42" cy="42" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-f)).toFixed(1)+'" transform="rotate(-90 42 42)"/></svg>';
+    '<circle class="fg" cx="42" cy="42" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-f)).toFixed(1)+'" transform="rotate(-90 42 42)"/>'+
+    '<text x="42" y="48" text-anchor="middle">'+Math.round(Math.max(0, frac)*100)+'%</text></svg>';
 }
 
 function macroCell(key, label, val, goal){
@@ -79,7 +80,7 @@ function plannedCard(date){
   const rows=CL.planner.SLOT_KEYS.map(slot=>{
     const r=CL.planner.recipeById(plan, day[slot]); if (!r) return "";
     const done=entries.some(e=>e.plan===date+":"+slot);
-    return '<li><div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+'</div><div style="font-weight:600;line-height:1.25">'+esc(r.name)+'</div><div class="hint num">'+U.fmt(CL.planner.slotKcal(plan, r))+' kcal</div></div>'+
+    return '<li>'+I.mealBadge(slot)+'<div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+'</div><div style="font-weight:600;line-height:1.25">'+esc(r.name)+'</div><div class="hint num">'+U.fmt(CL.planner.slotKcal(plan, r))+' kcal</div></div>'+
       (done? '<span class="done">'+icon("check")+'Logged</span>' : '<button type="button" class="btn small soft" data-logplan="'+slot+'">Ate it</button>')+'</li>';
   }).join("");
   if (!rows) return "";
@@ -91,10 +92,10 @@ function mealCard(date, meal){
   const kcal=list.reduce((a,e)=>a+(e.kcal||0),0);
   const rows=list.map(e=>'<li><button type="button" class="entry" data-entry="'+e.id+'"><div class="grow"><div class="nm">'+esc(e.name)+'</div><div class="sub">'+
     esc((e.servings!==1? U.frac(e.servings)+" × " : "")+(e.serving||"serving"))+' · '+I.macroText(e)+'</div></div><span class="kc num">'+U.fmt(e.kcal)+'</span></button></li>').join("");
-  return '<section class="card meal"><div class="mh"><h2>'+meal+(list.length? '<span class="k num">'+U.fmt(kcal)+' kcal</span>' : "")+'</h2>'+
+  return '<section class="card meal"><div class="mh">'+I.mealBadge(meal)+'<div class="grow"><h2>'+meal+'</h2><span class="k num">'+(list.length? U.fmt(kcal)+' kcal' : "Nothing yet")+'</span></div>'+
     '<div class="row" style="gap:2px"><button type="button" class="iconbtn ghost" data-mealmenu="'+meal+'" aria-label="'+meal+' options">'+icon("dots")+'</button>'+
     '<button type="button" class="iconbtn ghost" data-add="'+meal+'" aria-label="Add to '+meal+'">'+icon("plus")+'</button></div></div>'+
-    (rows? '<ul class="entries">'+rows+'</ul>' : '<p class="empty">Nothing yet.</p>')+'</section>';
+    (rows? '<ul class="entries">'+rows+'</ul>' : "")+'</section>';
 }
 
 function render(){
@@ -103,10 +104,12 @@ function render(){
   const left=G.goal-T.kcal, over=left<0, flexOver=over && -left<=G.goal*0.1;   // a little over is just a normal day
   const title= date===today? "Today" : date===U.addDays(today,-1)? "Yesterday" : U.shortDate(date,{weekday:"short", month:"short", day:"numeric"});
   const sk=I.streak();
-  let x='<header class="screenhead"><div class="daynav"><button type="button" class="iconbtn" data-day="-1" aria-label="Previous day">'+icon("left")+'</button>'+
-    '<button type="button" class="date" data-go="'+today+'" aria-label="Go to today">'+esc(title)+'</button>'+
-    '<button type="button" class="iconbtn" data-day="1" aria-label="Next day"'+(date>=today? " disabled" : "")+'>'+icon("right")+'</button></div>'+
-    (sk>=2? '<span class="chip good" title="Days logged in a row. One missed day a week doesn\'t break it.">'+icon("flame")+sk+'-day streak</span>' : "")+'</header>';
+  const hr=new Date().getHours(), hello=hr<5? "Up late" : hr<12? "Good morning" : hr<17? "Good afternoon" : "Good evening";
+  const eyebrow= date===today? hello : U.shortDate(date,{weekday:"long", month:"long", day:"numeric"});
+  let x='<header class="screenhead"><div><div class="eyebrow">'+esc(eyebrow)+(sk>=2? ' · <span class="streak" title="Days logged in a row. One missed day a week doesn\'t break it.">'+icon("flame")+sk+'-day streak</span>' : "")+'</div>'+
+    '<h1><button type="button" data-go="'+today+'" aria-label="Go to today">'+esc(title)+'</button></h1></div>'+
+    '<div class="daynav"><button type="button" class="iconbtn" data-day="-1" aria-label="Previous day">'+icon("left")+'</button>'+
+    '<button type="button" class="iconbtn" data-day="1" aria-label="Next day"'+(date>=today? " disabled" : "")+'>'+icon("right")+'</button></div></header>';
 
   if (!CL.store.S.health){
     x+='<section class="card banner"><div class="grow"><b>Set up your plan</b><p>Answer a few questions and the app works out a calorie target that doesn\'t feel like a punishment.</p></div><button type="button" class="btn primary small" data-tabgo="me">Start</button></section>';
@@ -117,10 +120,10 @@ function render(){
   if (!over){ bigVal=U.fmt(left); bigLbl="kcal left"; }
   else if (flexOver){ bigVal=U.fmt(-left); bigLbl="kcal over. Totally fine."; }
   else { bigVal=U.fmt(-left); bigLbl="kcal over today. The week evens it out."; }
-  x+='<section class="card summary"><div class="big'+(over && !flexOver? " over" : "")+'"><div><div class="v num">'+bigVal+'</div><div class="l">'+bigLbl+'</div></div>'+ring(T.kcal/G.goal, over && !flexOver)+'</div>'+
+  x+='<section class="card summary hero'+(over && !flexOver? " over" : "")+'"><div class="big'+(over && !flexOver? " over" : "")+'"><div><div class="v num">'+bigVal+'</div><div class="l">'+bigLbl+'</div></div>'+ring(T.kcal/G.goal, over && !flexOver)+'</div>'+
     '<div class="eq num"><div><b>'+U.fmt(G.goal)+'</b><span>Target</span></div><div><b>'+U.fmt(T.kcal)+'</b><span>Eaten</span></div><div><b>'+(over? "+"+U.fmt(-left) : U.fmt(left))+'</b><span>'+(over? "Over" : "Left")+'</span></div></div>'+
     '<div class="macros">'+macroCell("protein","Protein",T.protein,G.protein)+macroCell("carbs","Carbs",T.carbs,G.carbs)+macroCell("fat","Fat",T.fat,G.fat)+macroCell("fiber","Fiber",T.fiber,G.fiber)+'</div>'+
-    (G.flex? '<p class="flexnote">Your target includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+'</section>';
+    (G.flex? '<p class="flexnote">'+icon("gift")+'Includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+'</section>';
 
   // Same as yesterday?
   const yd=U.addDays(date,-1), ydN=CL.store.peekDay(yd).entries.length;

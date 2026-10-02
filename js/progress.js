@@ -26,7 +26,7 @@ function weightChart(tr, goalKg){
   pts.forEach((p,i)=>{ out+='<circle class="raw" cx="'+xs[i]+'" cy="'+y(raw[i])+'" r="3"><title>'+esc(U.shortDate(p.date))+': '+U.g1(raw[i])+' '+St.wUnit()+'</title></circle>'; });
   if (pts.length>1) out+='<path class="tr" d="M'+pts.map((p,i)=>xs[i].toFixed(1)+','+y(trd[i]).toFixed(1)).join(" L")+'"/>';
   const lx=xs[xs.length-1], ly=y(trd[trd.length-1]);
-  out+='<text class="lastv" x="'+Math.min(lx, W-R)+'" y="'+(ly-12)+'" text-anchor="'+(lx>W-40? "end" : "middle")+'">'+U.g1(trd[trd.length-1])+'</text>';
+  out+='<text class="lastv" x="'+Math.min(lx, W-R)+'" y="'+(ly-12)+'" text-anchor="'+(lx>W-40? "end" : lx<L+24? "start" : "middle")+'">'+U.g1(trd[trd.length-1])+'</text>';
   out+='<text class="ax" x="'+L+'" y="'+(H-6)+'">'+esc(U.shortDate(pts[0].date))+'</text><text class="ax" x="'+(W-R)+'" y="'+(H-6)+'" text-anchor="end">'+esc(U.shortDate(U.ymd(new Date(t1))))+'</text>';
   return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Weight chart">'+out+'</svg>';
 }
@@ -56,7 +56,7 @@ function render(){
   const tiles=[];
   tiles.push(["Trend weight", last? St.wFmt(last.trend)+" "+unit : "—", last? "Scale said "+St.wFmt(last.kg)+" on "+U.shortDate(last.date) : "No weigh-ins yet"]);
   const change=first&&last? last.trend-first.kg : null;
-  tiles.push(["Since start", change==null? "—" : (change<=0? "−" : "+")+U.g1(Math.abs(St.toDisp(change)))+" "+unit, first? "Started "+St.wFmt(first.kg)+" on "+U.shortDate(first.date) : "", change!=null && change<-0.2]);
+  tiles.push(["Since start", change==null? "—" : (Math.abs(St.toDisp(change))<0.05? "" : change<0? "−" : "+")+U.g1(Math.abs(St.toDisp(change)))+" "+unit, first? "Started "+St.wFmt(first.kg)+" on "+U.shortDate(first.date) : "", change!=null && change<-0.2]);
   tiles.push(["Per week", rate==null? "—" : (rate<=0? "−" : "+")+U.g1(Math.abs(St.toDisp(rate)))+" "+unit, rate==null? "Needs about a week of weigh-ins" : "Trend over the last 3 weeks", rate!=null && rate<0]);
   let eta="—", etaSub=goalKg? "Goal "+St.wFmt(goalKg)+" "+unit : "Set a goal in Me";
   if (goalKg && last && last.trend>goalKg){
@@ -67,7 +67,7 @@ function render(){
 
   const C=calorieChart(G.goal);
   const logged14=I.loggedDaysIn(14);
-  let x='<header class="screenhead"><h1>Progress</h1></header>';
+  let x='<header class="screenhead"><div><div class="eyebrow">Watch the trend, not the scale</div><h1>Progress</h1></div></header>';
   x+='<section class="card"><div class="cardhead"><h2>Weigh in</h2><span class="hint">Same time each morning works best</span></div>'+
     '<form class="row" id="wForm" style="flex-wrap:nowrap"><input type="number" id="wVal" inputmode="decimal" step="0.1" placeholder="Weight ('+unit+')" aria-label="Weight in '+unit+'" style="flex:1.2">'+
     '<input type="date" id="wDate" value="'+U.today()+'" max="'+U.today()+'" aria-label="Date" style="flex:1"><button class="btn primary" type="submit">Save</button></form></section>';

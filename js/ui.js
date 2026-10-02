@@ -6,6 +6,9 @@ const $=id=>document.getElementById(id);
 const icon=(name, cls)=>'<svg class="i'+(cls? " "+cls : "")+'" aria-hidden="true"><use href="#i-'+name+'"/></svg>';
 
 const MEALS=["Breakfast","Lunch","Dinner","Snacks"];
+/* Colored meal badge. Takes a log meal ("Snacks") or a recipe meal ("snack"). */
+const MEAL_ICON={breakfast:"coffee", lunch:"salad", dinner:"pot", snack:"apple", snacks:"apple"};
+function mealBadge(meal, cls){ const k=String(meal||"").toLowerCase(), m=k==="snacks"? "snack" : k; return '<span class="'+(cls||"mico")+' m-'+m+'" aria-hidden="true">'+icon(MEAL_ICON[k]||"pot")+'</span>'; }
 const SLOT_MEAL={breakfast:"Breakfast", lunch:"Lunch", dinner:"Dinner", snack:"Snacks"};
 function guessMeal(){
   const d=new Date(), m=d.getHours()*60+d.getMinutes();
@@ -146,7 +149,7 @@ function loggedDaysIn(lastN){
 
 function macroText(o){ return Math.round(o.protein||0)+"P · "+Math.round(o.carbs||0)+"C · "+Math.round(o.fat||0)+"F"; }
 
-CL.ui = {$, icon, MEALS, SLOT_MEAL, guessMeal, toast, hideToast, openSheet, setSheet, closeSheet, sheetOpen,
+CL.ui = {$, icon, MEALS, mealBadge, SLOT_MEAL, guessMeal, toast, hideToast, openSheet, setSheet, closeSheet, sheetOpen,
   scaleFood, foodSnapshot, addEntry, updateEntry, removeEntry, copyEntries, rememberFood, isFavorite, toggleFavorite, saveMyFood, myFoodByBarcode, foodKey,
   streak, loggedDaysIn, macroText, get undo(){ return undoFn; }};
 })();

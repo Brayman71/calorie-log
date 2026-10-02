@@ -17,7 +17,10 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - A daily treat allowance.
   - Neutral colors when you go over.
   - A weekly budget, so lighter days bank calories for bigger ones.
-- **Meal plans:** 41 easy recipes with step-by-step guides.
+- **Recipe book:** 85 easy recipes with step-by-step guides.
+  - 45 are lighter, higher-protein versions of the most popular recipes of recent years, from Google's yearly trending lists, TikTok, NYT Cooking, Allrecipes and others. Each one says why it's popular.
+  - Filter by meal or Popular, search by ingredient, and log a serving in one tap.
+- **Meal plans:** built from the recipe book.
   - The week is built around your diet, allergies, cooking time and favorite foods.
   - Dinners turn into next-day lunches.
   - Portions are scaled to your target.
@@ -58,7 +61,7 @@ Then open http://localhost:8642. The camera needs either `localhost` or `https`.
 | --- | --- |
 | `index.html`, `css/app.css` | Page shell and styles |
 | `js/plan-math.js` | Calorie target, macros and fiber, adaptive burn estimate, trend weight |
-| `js/recipes.js`, `js/planner.js` | Recipe book, week builder, grocery list |
+| `js/recipes.js`, `js/recipes-popular.js`, `js/planner.js` | Recipe book (classic and popular recipes), week builder, grocery list |
 | `js/scanner.js`, `js/foodapi.js` | Camera barcode reader, Open Food Facts / USDA lookups |
 | `js/claude.js` | Optional Claude features (Anthropic SDK, your own key) |
 | `js/store.js` | On-device storage, backup and restore |

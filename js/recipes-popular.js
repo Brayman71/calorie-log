@@ -1,0 +1,327 @@
+/* Popular and viral recipes (2021–2026): Google Year in Search, TikTok, Pinterest, Allrecipes, NYT Cooking, Skinnytaste, Delish, Taste of Home.
+   These are this app's own lighter, high-protein takes, written for easy shopping. `fame` says why each one is here.
+   Macros are per serving, estimated from USDA values for the listed ingredients. Same row format as recipes.js. */
+window.CL = window.CL || {};
+CL.RECIPES = CL.RECIPES || [];
+
+CL.RECIPES.push(
+/* ---------------- Breakfast ---------------- */
+{ id:"p-chia-pudding", name:"Protein chia pudding", meal:"breakfast", minutes:5, servings:2,
+  kcal:285, protein:16, carbs:35, fat:10, fiber:10, diet:"vegetarian", allergens:["dairy"], tags:["make-ahead","no-cook"],
+  fame:"Google's #4 trending recipe worldwide in 2025, and a favorite of TikTok's 2026 \"fibermaxxing\" trend.",
+  ingredients:[[0.25,"cup","chia seeds","Pantry"],[0.75,"cup","milk (2% or any)","Dairy & eggs"],[0.75,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"tbsp","maple syrup","Pantry"],[0.5,"tsp","vanilla extract","Pantry"],[1,"cup","blueberries (fresh or frozen)","Produce"]],
+  steps:["Whisk the chia seeds, milk, yogurt, maple syrup and vanilla in a bowl or two jars.","Wait 5 minutes, then whisk again. This stops the seeds from clumping.","Cover and refrigerate for at least 2 hours, or overnight.","Spoon the berries on top when you eat it."],
+  tip:"Want more protein? Whisk in half a scoop of vanilla protein powder and a splash more milk." },
+
+{ id:"p-baked-oats", name:"TikTok blended baked oats", meal:"breakfast", minutes:5, servings:1,
+  kcal:400, protein:20, carbs:54, fat:12, fiber:7, diet:"vegetarian", allergens:["egg","dairy"], tags:[],
+  fame:"#bakedoats passed a billion TikTok views. It peaked in 2021–22 and is now an everyday classic.",
+  ingredients:[[0.5,"cup","rolled oats","Grains & pasta"],[0.5,"","banana","Produce"],[1,"","egg","Dairy & eggs"],[0.25,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[3,"tbsp","milk (2% or any)","Dairy & eggs"],[0.5,"tsp","baking powder","Pantry"],[0.5,"tsp","cinnamon","Pantry"],[1,"tbsp","dark chocolate chips","Pantry"]],
+  steps:["Heat the oven (or air fryer) to 350°F.","Blend the oats, banana, egg, yogurt, milk, baking powder and cinnamon until smooth.","Pour into a small oven-safe dish and scatter the chocolate chips on top.","Bake 20–25 minutes (air fryer: about 12) until puffed and set in the middle."],
+  tip:"It tastes like a warm muffin. Swap the chips for blueberries on lighter days." },
+
+{ id:"p-protein-muffins", name:"Blueberry protein muffins", meal:"breakfast", minutes:15, servings:6,
+  kcal:230, protein:14, carbs:35, fat:4, fiber:3, diet:"vegetarian", allergens:["egg","dairy"], tags:["make-ahead","freezer","packable"],
+  fame:"Protein muffins were one of Google's top 10 trending recipes in the US in 2025.",
+  ingredients:[[2,"cup","rolled oats","Grains & pasta"],[1,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[2,"","eggs","Dairy & eggs"],[1,"scoop","vanilla or chocolate whey protein","Pantry"],[0.33,"cup","maple syrup","Pantry"],[1,"tsp","baking powder","Pantry"],[0.5,"tsp","baking soda","Pantry"],[1,"tsp","vanilla extract","Pantry"],[1,"cup","blueberries (fresh or frozen)","Produce"]],
+  steps:["Heat the oven to 350°F and line a 12-cup muffin tin.","Blend the oats into flour, then add the yogurt, eggs, protein powder, maple syrup, baking powder, baking soda and vanilla. Blend until smooth.","Fold in the blueberries with a spoon.","Fill the 12 cups and bake 18–22 minutes, until a toothpick comes out clean.","A serving is 2 muffins. Freeze extras and microwave them for 30 seconds."],
+  tip:"Don't skip lining the tin. Protein batter sticks." },
+
+{ id:"p-egg-bites", name:"Cottage cheese egg bites (Starbucks copycat)", meal:"breakfast", minutes:10, servings:4,
+  kcal:210, protein:20, carbs:4, fat:12, fiber:0, diet:"vegetarian", allergens:["egg","dairy"], tags:["make-ahead","freezer"],
+  fame:"A copycat of Starbucks' egg bites (which use cottage cheese too), boosted by TikTok's cottage cheese craze.",
+  ingredients:[[6,"","eggs","Dairy & eggs"],[1,"cup","2% cottage cheese","Dairy & eggs"],[0.5,"cup","shredded Swiss or cheddar","Dairy & eggs"],[1,"cup","baby spinach","Produce","chopped"],[0.25,"cup","roasted red peppers (jar)","Canned & jars","chopped"],[1,"spray","cooking spray","Pantry"]],
+  steps:["Heat the oven to 325°F. Spray a 12-cup muffin tin well.","Blend the eggs, cottage cheese and cheese until completely smooth, with a pinch of salt and pepper.","Divide the spinach and peppers between the cups and pour the egg mix over them.","Set the tin inside a larger pan, add an inch of hot water and bake 25–30 minutes until just set.","A serving is 3 bites. They keep 4 days in the fridge; reheat for 30 seconds."],
+  tip:"The water bath is what makes them soft and velvety like the coffee-shop ones." },
+
+{ id:"p-bfast-quesadilla", name:"High-protein breakfast quesadilla", meal:"breakfast", minutes:15, servings:1,
+  kcal:400, protein:37, carbs:24, fat:20, fiber:12, diet:"any", allergens:["egg","dairy","gluten"], tags:[],
+  fame:"One of Skinnytaste's 25 most-loved recipes of 2025.",
+  ingredients:[[2,"link","cooked chicken breakfast sausage","Meat & seafood","chopped"],[1,"","egg","Dairy & eggs"],[3,"tbsp","liquid egg whites","Dairy & eggs"],[3,"tbsp","2% cottage cheese","Dairy & eggs"],[1,"","scallion","Produce","sliced"],[0.25,"cup","reduced-fat shredded cheddar","Dairy & eggs"],[1,"","high-fiber tortilla (8-inch)","Bakery"],[2,"tbsp","salsa","Canned & jars"]],
+  steps:["Brown the chopped sausage in a nonstick pan, then push it to one side.","Beat the egg, egg whites and cottage cheese, pour into the pan and stir gently until just set. Mix in the scallion.","Lay the tortilla flat. Cover half with the cheese, then the eggs and sausage. Fold it over.","Wipe the pan and cook the quesadilla 2–3 minutes per side until crisp and melty. Serve with salsa."],
+  tip:"Cottage cheese in scrambled eggs melts away and makes them extra creamy." },
+
+{ id:"p-pesto-eggs", name:"Pesto eggs on toast", meal:"breakfast", minutes:8, servings:1,
+  kcal:385, protein:28, carbs:31, fat:16, fiber:2, diet:"vegetarian", allergens:["egg","dairy","gluten","tree nut"], tags:[],
+  fame:"A dietitian's 2021 TikTok passed 11 million views and the hashtag topped 130 million.",
+  ingredients:[[2,"tsp","basil pesto (jar)","Canned & jars"],[2,"","eggs","Dairy & eggs"],[0.25,"cup","liquid egg whites","Dairy & eggs"],[1,"slice","sourdough bread","Bakery"],[2,"tbsp","plain nonfat Greek yogurt","Dairy & eggs"],[0.5,"cup","cherry tomatoes","Produce"]],
+  steps:["Spoon the pesto into a nonstick pan over medium heat. It replaces the oil.","When it sizzles, crack in the eggs and pour the egg whites around them. Cook until the edges are crisp.","Toast the bread and spread it with the yogurt.","Slide the eggs on top. Add the halved tomatoes, black pepper and chili flakes if you like."],
+  tip:"Jar pesto is strong, so 2 teaspoons is plenty for flavor." },
+
+{ id:"p-chili-crisp-eggs", name:"Chili crisp fried egg rice bowl", meal:"breakfast", minutes:8, servings:1,
+  kcal:460, protein:26, carbs:44, fat:20, fiber:5, diet:"vegetarian", allergens:["egg","soy","sesame","peanut"], tags:[],
+  fame:"Chili oil eggs took off on TikTok in 2021, and chili crisp is still a top \"crunch\" trend for 2026.",
+  ingredients:[[2,"tsp","chili crisp","Canned & jars"],[2,"","eggs","Dairy & eggs"],[0.75,"cup","cooked rice","Grains & pasta","leftover or microwave pouch"],[0.5,"cup","frozen shelled edamame","Frozen"],[1,"","scallion","Produce","sliced"],[1,"tsp","low-sodium soy sauce","Pantry"]],
+  steps:["Microwave the rice and edamame together for 1½ minutes.","Heat the chili crisp in a nonstick pan over medium.","Crack in the eggs and fry until the whites are lacy and crisp at the edges.","Slide the eggs over the rice. Add the soy sauce and scallion."],
+  tip:"Some chili crisps contain peanuts or shrimp. Check the label if that matters to you." },
+
+{ id:"p-yogurt-bagels", name:"Greek yogurt bagel egg sandwiches", meal:"breakfast", minutes:15, servings:4,
+  kcal:275, protein:20, carbs:27, fat:9, fiber:1, diet:"vegetarian", allergens:["gluten","dairy","egg","sesame"], tags:["make-ahead","freezer"],
+  fame:"The 2-ingredient bagel started with Weight Watchers members and went viral on Pinterest and TikTok.",
+  ingredients:[[1,"cup","self-rising flour","Pantry"],[1,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[5,"","eggs","Dairy & eggs","1 for brushing"],[1,"tbsp","everything bagel seasoning","Pantry"],[4,"slice","light American cheese","Dairy & eggs"]],
+  steps:["Heat the oven to 375°F and line a baking sheet.","Stir the flour and yogurt into a shaggy dough, then knead it on a floured counter for a minute.","Cut into 4 pieces, roll each into a rope and pinch the ends into a ring.","Brush with 1 beaten egg, sprinkle the seasoning and bake 20–25 minutes until golden.","Fry the other 4 eggs, then split each bagel and fill it with an egg and a cheese slice."],
+  tip:"Make the bagels on Sunday. They freeze well; toast them straight from frozen." },
+
+{ id:"p-blueberry-bake", name:"Blueberry cottage cheese breakfast bake", meal:"breakfast", minutes:10, servings:4,
+  kcal:245, protein:19, carbs:27, fat:6, fiber:3, diet:"vegetarian", allergens:["egg","dairy"], tags:["make-ahead"],
+  fame:"One of Taste of Home's most popular recipes of 2026 so far.",
+  ingredients:[[1,"cup","2% cottage cheese","Dairy & eggs"],[3,"","eggs","Dairy & eggs"],[0.67,"cup","rolled oats","Grains & pasta"],[0.25,"cup","milk (2% or any)","Dairy & eggs"],[2,"tbsp","maple syrup","Pantry"],[1,"tsp","vanilla extract","Pantry"],[1,"tsp","cinnamon","Pantry"],[1,"cup","blueberries (fresh or frozen)","Produce"],[1,"cup","plain nonfat Greek yogurt","Dairy & eggs","for serving"]],
+  steps:["Heat the oven to 350°F and grease an 8×8 dish.","Blend the cottage cheese, eggs, oats, milk, maple syrup, vanilla and cinnamon with a pinch of salt.","Pour into the dish and scatter the blueberries over the top.","Bake about 35 minutes, until the center is set. Cool 10 minutes, then cut into 8 squares.","A serving is 2 squares with ¼ cup Greek yogurt."],
+  tip:"It's good cold, too. Pack 2 squares for a breakfast you can eat at your desk." },
+
+{ id:"p-cucumber-toast", name:"Cucumber cottage cheese toast", meal:"breakfast", minutes:10, servings:1,
+  kcal:315, protein:24, carbs:35, fat:9, fiber:2, diet:"vegetarian", allergens:["dairy","gluten","egg","sesame"], tags:[],
+  fame:"Baked by Melissa's TikTok toast. Cottage cheese searches hit an all-time high in 2024.",
+  ingredients:[[0.5,"cup","2% cottage cheese","Dairy & eggs"],[0.25,"","cucumber","Produce","finely diced"],[1,"","scallion","Produce","sliced"],[0.5,"tsp","dried dill (or fresh)","Pantry"],[1,"tsp","lemon juice","Produce"],[0.5,"tsp","everything bagel seasoning","Pantry"],[1,"slice","sourdough bread","Bakery"],[1,"","egg","Dairy & eggs"]],
+  steps:["Boil the egg for 7 minutes, then cool it in cold water and peel. That gives a jammy yolk.","Mix the cottage cheese, cucumber, scallion, dill and lemon juice.","Toast the bread and pile the mixture on top.","Add the sliced egg and finish with everything bagel seasoning."],
+  tip:"Dice the cucumber small so every bite gets crunch and creamy together." },
+
+/* ---------------- Lunch ---------------- */
+{ id:"p-dense-bean", name:"Dense bean salad", meal:"lunch", minutes:20, servings:5,
+  kcal:370, protein:29, carbs:31, fat:15, fiber:9, diet:"any", allergens:["dairy"], tags:["make-ahead","packable","batch","no-cook","deli"],
+  fame:"Violet Witchel's dense bean salads went viral in 2024 (11M+ views); it was one of Google's 5 most-searched US recipes that year.",
+  ingredients:[[1,"can","white beans (15 oz)","Canned & jars","drained and rinsed"],[1,"can","chickpeas (15 oz)","Canned & jars","drained and rinsed"],[2,"","bell pepper","Produce"],[2,"cup","cherry tomatoes","Produce"],[1,"","shallot","Produce"],[0.5,"cup","fresh parsley and basil","Produce"],[0.33,"cup","sun-dried tomatoes in oil","Canned & jars","drained"],[4,"oz","fresh mozzarella pearls","Dairy & eggs"],[8,"oz","cooked chicken breast (rotisserie works)","Meat & seafood"],[1,"oz","turkey pepperoni","Meat & seafood"],[2,"tbsp","olive oil","Pantry"],[3,"tbsp","red wine vinegar","Pantry"],[1,"","lemon","Produce"],[1,"tsp","Dijon mustard","Canned & jars"],[1,"tsp","Italian seasoning","Pantry"]],
+  steps:["Chop everything (peppers, tomatoes, shallot, herbs, sun-dried tomatoes, chicken, pepperoni) into bean-sized pieces.","Shake the oil, vinegar, lemon juice, mustard, Italian seasoning, salt and pepper in a jar.","Toss it all in a big container with the beans and mozzarella.","Refrigerate. It gets better after a day and keeps 4 days. A serving is about 1½ cups."],
+  tip:"The trick is \"dense\": more beans and protein than lettuce, so it actually fills you up." },
+
+{ id:"p-mariko-bowl", name:"Salmon rice bowl (Emily Mariko style)", meal:"lunch", minutes:15, servings:1,
+  kcal:520, protein:29, carbs:42, fat:25, fiber:3, diet:"pescatarian", allergens:["fish","soy","egg","gluten"], tags:[],
+  fame:"Emily Mariko's leftover-salmon bowl drew tens of millions of TikTok views. Instacart said salmon-and-seaweed orders doubled.",
+  ingredients:[[4,"oz","salmon fillet","Meat & seafood","or leftover cooked salmon"],[0.75,"cup","cooked rice","Grains & pasta"],[1,"tsp","low-sodium soy sauce","Pantry"],[1,"tsp","sriracha","Canned & jars"],[1,"tbsp","light mayo","Canned & jars"],[0.25,"","avocado","Produce"],[0.25,"cup","kimchi","Produce"],[1,"pack","roasted seaweed snacks","Pantry"]],
+  steps:["No leftover salmon? Bake it at 400°F for 12 minutes.","Flake the salmon over the rice, set an ice cube on top, cover with parchment and microwave 2 minutes. The ice steams the rice soft. Toss any ice that's left.","Add the soy sauce, sriracha and mayo, then mash and mix it all together.","Top with avocado and kimchi. Scoop bites with the seaweed sheets."],
+  tip:"Cook 2–3 salmon fillets at dinner and you have this lunch ready for days." },
+
+{ id:"p-cucumber-salad", name:"Viral cucumber salad with shrimp", meal:"lunch", minutes:10, servings:1,
+  kcal:340, protein:40, carbs:24, fat:11, fiber:6, diet:"pescatarian", allergens:["shellfish","soy","sesame","gluten"], tags:["no-cook","packable"],
+  fame:"Logan Moffitt (@logagm) made \"eat a whole cucumber\" a 2024 TikTok obsession. One video hit 23M views in four days.",
+  ingredients:[[1,"","cucumber","Produce","English"],[1,"","scallion","Produce"],[1,"clove","garlic","Produce"],[1,"tbsp","low-sodium soy sauce","Pantry"],[1,"tsp","rice vinegar","Pantry"],[1,"tsp","toasted sesame oil","Pantry"],[0.5,"tsp","sugar or honey","Pantry"],[1,"tsp","sesame seeds","Pantry"],[4,"oz","cooked peeled shrimp","Frozen","thawed"],[0.5,"cup","frozen shelled edamame","Frozen","thawed"]],
+  steps:["Slice the cucumber very thin (a mandoline is fastest) straight into a large jar or deli container.","Add the sliced scallion, grated garlic, soy sauce, vinegar, sesame oil, sugar, sesame seeds and a pinch of chili flakes.","Add the shrimp and edamame.","Put the lid on and shake hard. Eat right away, or chill up to a day."],
+  tip:"No shrimp? Use shredded chicken or imitation crab (his \"California roll\" version)." },
+
+{ id:"p-cottage-wrap", name:"Cottage cheese flatbread chicken wraps", meal:"lunch", minutes:10, servings:2,
+  kcal:345, protein:46, carbs:10, fat:12, fiber:1, diet:"any", allergens:["dairy","egg"], tags:["packable"],
+  fame:"Cottage cheese wraps and flatbreads hit all-time Google search highs in June 2024 after going viral on TikTok.",
+  ingredients:[[1,"cup","2% cottage cheese","Dairy & eggs"],[2,"","eggs","Dairy & eggs"],[1,"tsp","Italian seasoning","Pantry"],[0.5,"tsp","garlic powder","Pantry"],[6,"oz","cooked chicken breast (rotisserie works)","Meat & seafood"],[1,"cup","arugula or spinach","Produce"],[1,"","tomato","Produce"],[0.25,"cup","tzatziki","Dairy & eggs"]],
+  steps:["Heat the oven to 350°F and line a baking sheet with parchment.","Blend the cottage cheese, eggs, Italian seasoning and garlic powder until completely smooth.","Spread it thin into a rectangle and bake 35–40 minutes, until golden and no longer wet.","Cool 10 minutes, peel off the parchment and cut in half.","Fill each half with tzatziki, chicken, greens and tomato, then roll up."],
+  tip:"It's naturally gluten-free. Bake two sheets at once for a week of wraps." },
+
+{ id:"p-pizza-bowl", name:"Cottage cheese pizza bowl", meal:"lunch", minutes:10, servings:1,
+  kcal:385, protein:37, carbs:31, fat:13, fiber:3, diet:"any", allergens:["dairy","gluten"], tags:["deli"],
+  fame:"A TikTok favorite since 2024: all the pizza flavor, with about 30 grams of protein from the cottage cheese.",
+  ingredients:[[0.75,"cup","2% cottage cheese","Dairy & eggs"],[0.25,"cup","marinara sauce","Canned & jars"],[0.25,"cup","shredded part-skim mozzarella","Dairy & eggs"],[12,"","turkey pepperoni slices","Meat & seafood"],[0.5,"cup","sliced mushrooms or bell pepper","Produce"],[0.25,"tsp","Italian seasoning","Pantry"],[1,"slice","whole wheat bread","Bakery"]],
+  steps:["Stir the Italian seasoning into the cottage cheese and spread it in an oven-safe bowl.","Layer the marinara, vegetables, mozzarella and pepperoni on top.","Bake at 400°F for 15 minutes (or air fry 8, or microwave 2) until bubbly.","Toast the bread, cut it into strips and dip."],
+  tip:"Swap the toast for veggie sticks to make it lower in carbs." },
+
+{ id:"p-green-goddess", name:"Green goddess chickpea salad", meal:"lunch", minutes:20, servings:4,
+  kcal:355, protein:15, carbs:44, fat:15, fiber:15, diet:"vegan", allergens:["tree nut"], tags:["make-ahead","no-cook","packable"],
+  fame:"Baked by Melissa's finely chopped salad (about 27M views) was one of Google's top trending US recipes of 2022.",
+  ingredients:[[0.5,"head","green cabbage","Produce"],[1,"","cucumber","Produce"],[1,"bunch","chives or scallions","Produce"],[2,"can","chickpeas (15 oz)","Canned & jars","drained and rinsed"],[1,"cup","fresh basil","Produce"],[1,"cup","baby spinach","Produce"],[1,"","shallot","Produce"],[1,"clove","garlic","Produce"],[1,"","lemon","Produce"],[2,"tbsp","olive oil","Pantry"],[2,"tbsp","rice vinegar","Pantry"],[0.25,"cup","nutritional yeast","Pantry"],[0.25,"cup","walnuts","Pantry"]],
+  steps:["Blend the basil, spinach, shallot, garlic, lemon juice, oil, vinegar, nutritional yeast, walnuts and ¼ cup water into a thick dressing.","Chop the cabbage, cucumber and chives very finely. Small pieces are the whole point.","Toss the vegetables and chickpeas with the dressing.","Eat it with a fork or scoop it up with cucumber rounds. It keeps 3 days."],
+  tip:"A food processor chops the cabbage in seconds if you have one." },
+
+{ id:"p-shawarma-rice-salad", name:"Chicken shawarma crispy rice salad", meal:"lunch", minutes:25, servings:4,
+  kcal:480, protein:46, carbs:35, fat:17, fiber:5, diet:"any", allergens:["sesame","dairy"], tags:["packable","sheet-pan"],
+  fame:"Kalejunkie's shawarma crispy rice salad passed 50 million views across platforms in 2025.",
+  ingredients:[[1.5,"lb","boneless chicken breast","Meat & seafood"],[1,"tsp","cumin","Pantry"],[1,"tsp","smoked paprika","Pantry"],[0.5,"tsp","turmeric","Pantry"],[1,"tsp","garlic powder","Pantry"],[0.25,"tsp","cinnamon","Pantry"],[2,"cup","cooked rice","Grains & pasta","cold, day-old is best"],[5,"tsp","olive oil","Pantry"],[8,"cup","chopped romaine","Produce"],[1,"cup","cherry tomatoes","Produce"],[1,"","cucumber","Produce"],[0.25,"","red onion","Produce"],[3,"tbsp","tahini","Pantry"],[0.25,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"","lemon","Produce"]],
+  steps:["Heat the oven to 425°F. Toss the cold rice with 1 tbsp oil and a pinch of salt, spread it thin on a lined sheet pan and bake 25 minutes until crisp.","Meanwhile, rub the chicken with the spices, salt and the remaining 2 tsp oil. Sear it in a hot pan 5–6 minutes per side, rest 5 minutes and slice.","Whisk the tahini, yogurt, lemon juice, a grated garlic clove or pinch of garlic powder, and water until drizzly.","Pile the romaine, tomatoes, cucumber and onion in bowls, add the chicken and break the crispy rice over the top. Drizzle with the dressing."],
+  tip:"For lunches, pack the crispy rice and dressing separately so they stay crunchy." },
+
+{ id:"p-aniston-salad", name:"Jennifer Aniston salad", meal:"lunch", minutes:20, servings:5,
+  kcal:320, protein:12, carbs:40, fat:14, fiber:11, diet:"vegetarian", allergens:["dairy","gluten","tree nut"], tags:["make-ahead","packable"],
+  fame:"Google's #7 trending US recipe of 2022.",
+  ingredients:[[1,"cup","bulgur wheat (dry)","Grains & pasta"],[1,"can","chickpeas (15 oz)","Canned & jars","drained and rinsed"],[1,"","cucumber","Produce","English"],[0.5,"","red onion","Produce"],[1,"cup","fresh parsley","Produce"],[0.25,"cup","fresh mint","Produce"],[0.5,"cup","crumbled feta","Dairy & eggs"],[0.33,"cup","shelled pistachios","Pantry"],[2,"tbsp","olive oil","Pantry"],[2,"","lemon","Produce"]],
+  steps:["Cook the bulgur in 2 cups of salted water (about 12 minutes), drain well and spread it out to cool.","Dice the cucumber and onion, and chop the parsley, mint and pistachios.","Whisk the oil, lemon juice, salt and pepper.","Toss everything with the chickpeas and feta. It keeps 4 days."],
+  tip:"Add a little shredded chicken if you want this to keep you full longer." },
+
+{ id:"p-bigmac-salad", name:"Big Mac salad", meal:"lunch", minutes:15, servings:3,
+  kcal:410, protein:40, carbs:14, fat:21, fiber:3, diet:"any", allergens:["dairy","egg","sesame"], tags:[],
+  fame:"A low-carb TikTok staple: every Big Mac flavor, special sauce included, over a pile of crunchy lettuce.",
+  ingredients:[[1,"lb","93% lean ground beef","Meat & seafood"],[0.5,"tsp","onion powder","Pantry"],[6,"cup","shredded iceberg lettuce","Produce"],[1,"cup","cherry tomatoes","Produce"],[0.5,"","onion","Produce"],[0.25,"cup","dill pickles","Canned & jars","chopped"],[0.5,"cup","shredded cheddar","Dairy & eggs"],[3,"tbsp","light mayo","Canned & jars"],[3,"tbsp","plain nonfat Greek yogurt","Dairy & eggs"],[1,"tbsp","ketchup","Canned & jars"],[1,"tbsp","sweet pickle relish","Canned & jars"],[1,"tsp","yellow mustard","Canned & jars"],[1,"tsp","sesame seeds","Pantry"]],
+  steps:["Brown the beef with the onion powder, salt and pepper, breaking it into crumbles. Drain any fat.","Whisk the mayo, yogurt, ketchup, relish, mustard and a splash of pickle juice. That's your special sauce.","Pile the lettuce, tomatoes, diced onion, pickles and cheese in bowls.","Add the warm beef, drizzle with the sauce and sprinkle with sesame seeds."],
+  tip:"Meal prep: keep the beef, salad and sauce separate, then warm the beef and assemble." },
+
+/* ---------------- Dinner ---------------- */
+{ id:"p-hot-honey-bowl", name:"Hot honey cottage cheese beef bowls", meal:"dinner", minutes:20, servings:4,
+  kcal:470, protein:38, carbs:36, fat:20, fiber:5, diet:"any", allergens:["dairy"], tags:["batch"],
+  fame:"Google's #1 trending US recipe of 2025. Hot honey was also the #1 trending recipe search worldwide.",
+  ingredients:[[2,"","sweet potatoes","Produce","large"],[1,"tbsp","olive oil","Pantry"],[1,"lb","93% lean ground beef","Meat & seafood"],[1,"tbsp","taco seasoning","Pantry"],[2,"cup","2% cottage cheese","Dairy & eggs"],[1,"","avocado","Produce"],[2,"tbsp","hot honey","Pantry"]],
+  steps:["Cut the sweet potatoes into ½-inch cubes, toss with the oil and salt, then air fry at 400°F for 18 minutes (or roast 25 minutes), shaking once.","Brown the beef and stir in the taco seasoning with a splash of water.","In each bowl: 1 cup sweet potato, a quarter of the beef, ½ cup cottage cheese and a quarter of the avocado.","Drizzle about 1½ teaspoons of hot honey over each bowl and add chili flakes if you like heat."],
+  tip:"No hot honey? Warm 2 tbsp honey with ½ tsp chili flakes for 20 seconds." },
+
+{ id:"p-marry-me", name:"High-protein Marry Me chicken", meal:"dinner", minutes:25, servings:4,
+  kcal:475, protein:51, carbs:37, fat:13, fiber:3, diet:"any", allergens:["dairy","gluten"], tags:["batch"],
+  fame:"Google's #3 trending US recipe of 2022 and #2 worldwide in 2025. The NYT's version was its most popular recipe of 2023.",
+  ingredients:[[1.5,"lb","boneless chicken breast","Meat & seafood"],[1,"tbsp","olive oil","Pantry"],[3,"clove","garlic","Produce"],[1,"tsp","Italian seasoning","Pantry"],[0.5,"tsp","red pepper flakes","Pantry"],[1,"cup","low-sodium chicken broth","Canned & jars"],[0.75,"cup","2% cottage cheese","Dairy & eggs"],[0.33,"cup","grated parmesan","Dairy & eggs"],[0.33,"cup","sun-dried tomatoes in oil","Canned & jars","drained and chopped"],[2,"cup","baby spinach","Produce"],[6,"oz","short pasta","Grains & pasta","or 3 cups cooked rice"]],
+  steps:["Start the pasta in salted water. Slice the chicken breasts in half the thin way and season with salt and pepper.","Sear the chicken in the oil 4 minutes per side, then move it to a plate.","Blend the cottage cheese with the broth until completely smooth. It stands in for heavy cream.","Lower the heat. Cook the garlic, Italian seasoning and pepper flakes 30 seconds, then add the blended sauce, parmesan and sun-dried tomatoes. Simmer 3 minutes.","Stir in the spinach, return the chicken and simmer 5 minutes until cooked through. Serve over the pasta."],
+  tip:"Keep the sauce at a gentle simmer. A hard boil can make cottage cheese grainy." },
+
+{ id:"p-lasagna-soup", name:"Lighter lasagna soup", meal:"dinner", minutes:30, servings:6,
+  kcal:335, protein:24, carbs:36, fat:10, fiber:4, diet:"any", allergens:["gluten","dairy"], tags:["batch"],
+  fame:"Google's #2 trending US recipe of 2023, and back on the worldwide top-trending list in 2025.",
+  ingredients:[[1,"lb","lean Italian turkey sausage","Meat & seafood"],[1,"","onion","Produce"],[4,"clove","garlic","Produce"],[2,"tbsp","tomato paste","Canned & jars"],[1,"can","crushed tomatoes (28 oz)","Canned & jars"],[5,"cup","low-sodium chicken broth","Canned & jars"],[1,"tsp","Italian seasoning","Pantry"],[6,"oz","lasagna noodles","Grains & pasta","broken into pieces"],[3,"cup","baby spinach","Produce"],[0.75,"cup","part-skim ricotta","Dairy & eggs"],[0.25,"cup","grated parmesan","Dairy & eggs"]],
+  steps:["Brown the sausage (casings removed) with the diced onion in a big pot, about 6 minutes. Add the garlic for 1 minute.","Stir in the tomato paste, then the crushed tomatoes, broth and Italian seasoning. Simmer 10 minutes.","Add the broken noodles and simmer 10–12 minutes, stirring now and then, until tender. Stir in the spinach.","Mix the ricotta and parmesan. Serve each bowl with a spoonful on top."],
+  tip:"Noodles keep soaking up broth. Add a splash of water when you reheat leftovers." },
+
+{ id:"p-dumpling-bake", name:"Coconut curry dumpling bake", meal:"dinner", minutes:5, servings:4,
+  kcal:495, protein:24, carbs:56, fat:19, fiber:6, diet:"any", allergens:["gluten","soy"], tags:["one-pan"],
+  fame:"Google's #2 trending US recipe of 2025 and one of Allrecipes' most popular new recipes that year.",
+  ingredients:[[24,"oz","frozen chicken potstickers or dumplings","Frozen"],[1,"can","light coconut milk (13.5 oz)","Canned & jars"],[2,"tbsp","red curry paste","Canned & jars"],[1,"tbsp","low-sodium soy sauce","Pantry"],[1,"tbsp","honey","Pantry"],[2,"clove","garlic","Produce"],[1,"tsp","grated ginger","Produce"],[0.5,"cup","low-sodium chicken broth","Canned & jars"],[1.5,"cup","frozen shelled edamame","Frozen"],[4,"cup","baby bok choy or spinach","Produce"],[2,"","scallion","Produce"]],
+  steps:["Heat the oven to 400°F.","Whisk the coconut milk, curry paste, soy sauce, honey, grated garlic, ginger and broth in a 9×13 baking dish.","Stir in the edamame and the chopped bok choy, then nestle the frozen dumplings on top (no need to thaw).","Bake 25–30 minutes until the dumplings are hot and the sauce bubbles. Top with scallions."],
+  tip:"Some curry pastes contain shrimp or fish. Thai Kitchen's red curry paste doesn't." },
+
+{ id:"p-turkish-pasta", name:"Turkish pasta with garlic yogurt", meal:"dinner", minutes:25, servings:4,
+  kcal:470, protein:40, carbs:49, fat:12, fiber:3, diet:"any", allergens:["gluten","dairy"], tags:["batch"],
+  fame:"Anna Paul's video (about 11.6M views) made it Google's #7 trending US recipe of 2025.",
+  ingredients:[[8,"oz","short pasta","Grains & pasta"],[1,"lb","93% lean ground beef","Meat & seafood"],[1,"","onion","Produce","small"],[2,"tbsp","tomato paste","Canned & jars"],[2,"tsp","paprika","Pantry"],[1,"tsp","cumin","Pantry"],[1.5,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"clove","garlic","Produce"],[0.5,"","lemon","Produce"],[1,"tbsp","butter","Dairy & eggs"]],
+  steps:["Cook the pasta in salted water.","Brown the beef with the diced onion, then stir in the tomato paste, 1 tsp paprika, the cumin, salt and a splash of pasta water.","Stir the yogurt with the grated garlic, lemon juice and a pinch of salt.","Melt the butter with the other 1 tsp paprika and some chili flakes.","Plate the pasta, spoon the garlic yogurt over it, add the beef and drizzle with the red butter."],
+  tip:"Cold yogurt, hot pasta and spicy butter is the whole magic. Don't heat the yogurt." },
+
+{ id:"p-white-chili", name:"White chicken chili", meal:"dinner", minutes:15, servings:6,
+  kcal:345, protein:45, carbs:26, fat:6, fiber:6, diet:"any", allergens:["dairy"], tags:["slow-cooker","freezer","batch"],
+  fame:"One of Google's top 5 trending recipes worldwide in 2025.",
+  ingredients:[[2,"lb","boneless chicken breast","Meat & seafood"],[1,"","onion","Produce"],[4,"clove","garlic","Produce"],[1,"tsp","olive oil","Pantry"],[2,"can","white beans (15 oz)","Canned & jars","drained and rinsed"],[2,"can","diced green chiles (4 oz)","Canned & jars"],[1,"cup","corn (frozen or canned)","Frozen"],[2,"tsp","cumin","Pantry"],[1,"tsp","dried oregano","Pantry"],[4,"cup","low-sodium chicken broth","Canned & jars"],[0.75,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"","lime","Produce"]],
+  steps:["Soften the diced onion in the oil in a big pot, 5 minutes. Add the garlic, cumin and oregano for 1 minute.","Add the whole chicken breasts, beans, chiles, corn and broth. Simmer covered 25 minutes. (Slow cooker: everything in, 6 hours on low.)","Lift out the chicken, shred it with two forks and stir it back in. Mash a cup of the beans against the pot to thicken.","Off the heat, stir in the yogurt and lime juice. Top with cilantro if you like."],
+  tip:"It freezes for 3 months. Freeze it before adding the yogurt." },
+
+{ id:"p-smash-tacos", name:"Smash burger tacos", meal:"dinner", minutes:20, servings:4,
+  kcal:485, protein:37, carbs:38, fat:19, fiber:3, diet:"any", allergens:["gluten","dairy","egg"], tags:[],
+  fame:"Smash burger tacos blew up in 2023. The creator's video passed 16M views and related TikTok tags passed 600M.",
+  ingredients:[[1,"lb","93% lean ground beef","Meat & seafood"],[8,"","small flour tortillas (6-inch)","Bakery"],[8,"slice","light American cheese","Dairy & eggs"],[2,"cup","shredded lettuce","Produce"],[0.25,"cup","dill pickles","Canned & jars","chopped"],[0.25,"","onion","Produce","finely diced"],[2,"tbsp","light mayo","Canned & jars"],[2,"tbsp","plain nonfat Greek yogurt","Dairy & eggs"],[1,"tbsp","ketchup","Canned & jars"],[1,"tbsp","sweet pickle relish","Canned & jars"],[1,"tsp","yellow mustard","Canned & jars"]],
+  steps:["Mix the mayo, yogurt, ketchup, relish and mustard for the sauce.","Divide the beef into 8 balls. Press each one into a thin layer across a tortilla, all the way to the edges. Season with salt and pepper.","Cook beef-side down in a hot skillet 3 minutes until browned, then flip.","Add a cheese slice and cook 1 minute more.","Top with lettuce, pickles, onion and sauce, then fold like a taco."],
+  tip:"Low-carb tortillas cut about 50 calories per taco." },
+
+{ id:"p-korean-beef", name:"Korean ground beef bowls", meal:"dinner", minutes:15, servings:4,
+  kcal:435, protein:32, carbs:51, fat:11, fiber:4, diet:"any", allergens:["soy","gluten","sesame"], tags:["one-pan"],
+  fame:"One of the web's most-made weeknight dinners: Damn Delicious's version alone has nearly 600 ratings, almost all 5 stars.",
+  ingredients:[[1,"lb","93% lean ground beef","Meat & seafood","or ground turkey"],[3,"clove","garlic","Produce"],[1,"tsp","grated ginger","Produce"],[2,"tbsp","brown sugar","Pantry"],[0.25,"cup","low-sodium soy sauce","Pantry"],[2,"tsp","toasted sesame oil","Pantry"],[3,"","scallion","Produce"],[1,"tsp","sesame seeds","Pantry"],[3,"cup","cooked rice","Grains & pasta"],[12,"oz","steam-in-bag broccoli","Frozen"],[1,"","cucumber","Produce"]],
+  steps:["Brown the beef in a large skillet, breaking it up. Add the garlic and ginger for 1 minute.","Stir in the soy sauce, brown sugar, sesame oil and a pinch of red pepper flakes. Simmer 2 minutes until glossy.","Microwave the broccoli and slice the cucumber.","Serve the beef over rice with the broccoli and cucumber. Top with scallions and sesame seeds."],
+  tip:"It's 15 minutes from start to finish, so it's a good one for nights you'd normally order in." },
+
+{ id:"p-eggroll-bowl", name:"Chicken egg roll in a bowl", meal:"dinner", minutes:20, servings:4,
+  kcal:455, protein:38, carbs:43, fat:14, fiber:4, diet:"any", allergens:["soy","gluten","sesame"], tags:["one-pan"],
+  fame:"One of Skinnytaste's 3 most-loved recipes of 2025, and part of Pinterest's 2026 cabbage trend.",
+  ingredients:[[1.5,"lb","93% lean ground chicken","Meat & seafood"],[0.25,"cup","low-sodium soy sauce","Pantry"],[14,"oz","coleslaw mix","Produce"],[3,"cup","chopped bok choy","Produce"],[3,"clove","garlic","Produce"],[1,"tbsp","grated ginger","Produce"],[1,"tsp","toasted sesame oil","Pantry"],[1,"tbsp","rice vinegar","Pantry"],[4,"","scallion","Produce"],[3,"cup","cooked rice","Grains & pasta"]],
+  steps:["Brown the chicken in a large skillet with half the soy sauce, breaking it up.","Add the garlic and ginger for 1 minute.","Add the coleslaw mix and bok choy with the rest of the soy sauce. Cook 3–4 minutes until just wilted but still a little crunchy.","Turn off the heat. Stir in the sesame oil, vinegar and scallions. Serve over rice, with sriracha if you like."],
+  tip:"Use cauliflower rice to save about 150 calories a bowl." },
+
+{ id:"p-shawarma-sheetpan", name:"Chicken shawarma sheet pan", meal:"dinner", minutes:10, servings:4,
+  kcal:475, protein:43, carbs:41, fat:15, fiber:10, diet:"any", allergens:["dairy","gluten"], tags:["sheet-pan","batch"],
+  fame:"One of Skinnytaste's 10 most-loved recipes of 2025. Shawarma spice is also behind 2025's most-viewed crispy rice salad.",
+  ingredients:[[1.5,"lb","boneless skinless chicken thighs","Meat & seafood"],[1,"can","chickpeas (15 oz)","Canned & jars","drained and patted dry"],[1,"","red onion","Produce"],[1,"","bell pepper","Produce"],[2,"","carrot","Produce"],[1,"tbsp","olive oil","Pantry"],[2,"tsp","smoked paprika","Pantry"],[2,"tsp","cumin","Pantry"],[1,"tsp","garlic powder","Pantry"],[1,"tsp","dried oregano","Pantry"],[0.5,"tsp","cinnamon","Pantry"],[0.5,"cup","tzatziki","Dairy & eggs"],[2,"","whole wheat pitas","Bakery"]],
+  steps:["Heat the oven to 425°F and line a sheet pan.","Cut the chicken into bite-size pieces, and the onion, pepper and carrots into chunks.","Toss everything (chicken, chickpeas, vegetables) with the oil, spices and 1 tsp salt right on the pan. Spread it out.","Roast 30–35 minutes, stirring once, then broil 2 minutes for charred edges.","Serve with tzatziki and half a warm pita each."],
+  tip:"Spread it out. A crowded pan steams instead of browning." },
+
+{ id:"p-birria", name:"Slow-cooker birria tacos", meal:"dinner", minutes:30, servings:8,
+  kcal:460, protein:37, carbs:31, fat:21, fiber:5, diet:"any", allergens:["dairy"], tags:["slow-cooker","freezer","batch"],
+  fame:"#birriatacos passed 3 billion TikTok views. Skinnytaste's slow-cooker version was one of its 5 most-loved recipes of 2025.",
+  ingredients:[[2.5,"lb","boneless chuck roast","Meat & seafood","trimmed of fat"],[1,"","onion","Produce"],[6,"clove","garlic","Produce"],[1,"tbsp","cumin","Pantry"],[1,"tbsp","dried oregano","Pantry"],[1,"tbsp","chili powder","Pantry"],[0.5,"tsp","cinnamon","Pantry"],[1,"can","chipotle peppers in adobo (7 oz)","Canned & jars","use 3 peppers"],[1,"cup","crushed tomatoes","Canned & jars"],[3,"cup","low-sodium beef broth","Canned & jars"],[16,"","corn tortillas","Bakery"],[1.5,"cup","shredded Oaxaca or part-skim mozzarella","Dairy & eggs"],[1,"","lime","Produce"]],
+  steps:["Blend the onion, garlic, spices, 3 chipotles plus 2 tbsp of their sauce, the tomatoes and 1 cup broth.","Put the beef in the slow cooker with the sauce, the rest of the broth and 1 tsp salt. Cook 8 hours on low.","Shred the beef. Skim the fat off the top of the liquid; that liquid is your dipping consommé.","Dip a tortilla in the consommé, lay it in a hot skillet, add cheese and beef, fold and cook 2 minutes per side until crisp.","A serving is 2 tacos with a cup of consommé for dipping, plus onion, cilantro and lime."],
+  tip:"Chill the liquid overnight and the fat sets on top, so you can lift it right off." },
+
+{ id:"p-crack-chicken", name:"Lighter crack chicken sandwiches", meal:"dinner", minutes:10, servings:6,
+  kcal:415, protein:47, carbs:27, fat:14, fiber:5, diet:"any", allergens:["dairy","gluten"], tags:["slow-cooker","freezer","batch"],
+  fame:"A long-running Pinterest and TikTok favorite. The top crack chicken videos have more than 23M views between them.",
+  ingredients:[[2,"lb","boneless chicken breast","Meat & seafood"],[4,"oz","light cream cheese (Neufchâtel)","Dairy & eggs"],[0.5,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"pack","ranch seasoning (1 oz)","Pantry"],[6,"slice","turkey bacon","Meat & seafood"],[0.5,"cup","reduced-fat shredded cheddar","Dairy & eggs"],[3,"","scallion","Produce"],[6,"","whole wheat sandwich thins","Bakery"]],
+  steps:["Put the chicken, cream cheese and ranch seasoning in the slow cooker. Cook 4 hours on high or 6 on low.","Cook the turkey bacon until crisp and chop it.","Shred the chicken right in the pot, then stir in the yogurt, cheddar, bacon and scallions.","Pile onto sandwich thins, or serve over a baked potato or in lettuce cups."],
+  tip:"The filling freezes well in portions for quick lunches." },
+
+{ id:"p-feta-pasta", name:"Baked feta pasta", meal:"dinner", minutes:10, servings:4,
+  kcal:410, protein:18, carbs:48, fat:18, fiber:7, diet:"vegetarian", allergens:["dairy","gluten"], tags:["one-pan"],
+  fame:"The 2021 TikTok sensation was Google's #1 trending US recipe that year. It's past its peak but still a classic.",
+  ingredients:[[4,"cup","cherry tomatoes","Produce"],[6,"oz","feta (block)","Dairy & eggs"],[2,"tbsp","olive oil","Pantry"],[4,"clove","garlic","Produce"],[0.5,"tsp","red pepper flakes","Pantry"],[8,"oz","protein pasta","Grains & pasta"],[3,"cup","baby spinach","Produce"],[0.5,"cup","fresh basil","Produce"]],
+  steps:["Heat the oven to 400°F. Put the feta block in the middle of a baking dish, with the tomatoes and whole garlic cloves around it.","Drizzle with the oil, add the pepper flakes and black pepper, and bake 35 minutes until the tomatoes burst.","Cook the pasta while it bakes. Save a cup of the cooking water.","Mash the feta, tomatoes and garlic into a sauce. Toss in the pasta, spinach and a splash of pasta water. Top with basil."],
+  tip:"Add a pound of shrimp to the dish for the last 8 minutes to make it pescatarian and much higher in protein." },
+
+{ id:"p-gyros", name:"Parchment paper gyros", meal:"dinner", minutes:15, servings:4,
+  kcal:410, protein:33, carbs:43, fat:12, fiber:7, diet:"any", allergens:["gluten","dairy"], tags:[],
+  fame:"A TikTok trick from @MezeMike that became one of Taste of Home's most popular recipes of 2026 so far.",
+  ingredients:[[1,"lb","93% lean ground beef","Meat & seafood","or ground lamb"],[0.5,"","onion","Produce","grated"],[2,"tbsp","plain nonfat Greek yogurt","Dairy & eggs"],[3,"clove","garlic","Produce"],[1,"tsp","dried oregano","Pantry"],[1,"tsp","cumin","Pantry"],[1,"tsp","ground coriander","Pantry"],[1,"tsp","paprika","Pantry"],[4,"","whole wheat pitas","Bakery"],[0.5,"cup","tzatziki","Dairy & eggs"],[2,"","tomato","Produce"],[0.5,"","red onion","Produce"],[2,"cup","shredded lettuce","Produce"]],
+  steps:["Heat the oven to 400°F. Mix the beef, grated onion, yogurt, garlic, spices and 1 tsp salt with your hands.","Roll it out very thin between two sheets of parchment, then fold the edges to seal it like a packet.","Bake on a sheet pan 15 minutes.","Open it, tear the meat into strips and broil 3 minutes until the edges crisp.","Fill warm pitas with the meat, tzatziki, tomato, onion and lettuce."],
+  tip:"Grating the onion (instead of chopping) makes the meat juicy like the restaurant kind." },
+
+{ id:"p-lemon-chicken-rice", name:"One-pot lemon chicken and rice", meal:"dinner", minutes:20, servings:4,
+  kcal:485, protein:40, carbs:45, fat:15, fiber:3, diet:"any", allergens:["dairy"], tags:["one-pan","batch"],
+  fame:"Inspired by the #1 reader favorite on NYT Cooking's 2024 top-50 list.",
+  ingredients:[[1.5,"lb","boneless skinless chicken thighs","Meat & seafood"],[1,"","lemon","Produce","thinly sliced"],[1,"tbsp","olive oil","Pantry"],[1,"tbsp","butter","Dairy & eggs"],[3,"clove","garlic","Produce"],[1,"cup","long-grain white rice (dry)","Grains & pasta"],[2,"cup","low-sodium chicken broth","Canned & jars"],[0.33,"cup","green olives","Canned & jars"],[1,"tsp","dried oregano","Pantry"],[1,"cup","frozen peas","Frozen"]],
+  steps:["Heat the oven to 375°F. Season the chicken with salt, pepper and oregano.","In an oven-safe pot, brown the lemon slices in the oil until caramelized, then set them aside. Brown the chicken 3 minutes per side and set it aside too.","Melt the butter, toast the rice and garlic 2 minutes, then add the broth and olives and bring to a boil.","Set the chicken and lemons on top, cover and bake 25 minutes.","Stir in the peas, cover again and rest 5 minutes before serving."],
+  tip:"The caramelized lemon slices are soft enough to eat. Don't throw them out." },
+
+{ id:"p-miso-salmon", name:"Sticky miso salmon bowls", meal:"dinner", minutes:25, servings:4,
+  kcal:500, protein:33, carbs:47, fat:19, fiber:5, diet:"pescatarian", allergens:["fish","soy","gluten"], tags:[],
+  fame:"Inspired by one of NYT Cooking's 3 most popular reader favorites of 2024.",
+  ingredients:[[1,"lb","salmon fillet","Meat & seafood"],[2,"tbsp","white miso paste","Produce"],[2,"tbsp","honey","Pantry"],[1,"tbsp","low-sodium soy sauce","Pantry"],[1,"tbsp","rice vinegar","Pantry"],[1,"tsp","grated ginger","Produce"],[2.5,"cup","cooked rice","Grains & pasta"],[1,"cup","frozen shelled edamame","Frozen"],[1,"","cucumber","Produce"],[0.5,"","avocado","Produce"],[2,"","scallion","Produce"],[2,"","nori sheets","Pantry"]],
+  steps:["Heat the broiler. Whisk the miso, honey, soy sauce, vinegar and ginger.","Cut the salmon into 4 pieces on a foil-lined pan. Brush with most of the glaze.","Broil 6–8 minutes, until sticky and just cooked through. Brush with the rest of the glaze.","Warm the rice and edamame. Build bowls with the salmon, cucumber, avocado, scallions and torn nori."],
+  tip:"Miso is in the refrigerated section, often near the tofu. It keeps for months." },
+
+{ id:"p-bang-bang", name:"Air fryer bang bang chicken bowls", meal:"dinner", minutes:20, servings:4,
+  kcal:505, protein:46, carbs:57, fat:9, fiber:3, diet:"any", allergens:["gluten","egg"], tags:[],
+  fame:"Allrecipes' bang bang chicken was one of its top recipes of 2025, and high-protein bowl versions are all over TikTok.",
+  ingredients:[[1.5,"lb","boneless chicken breast","Meat & seafood"],[1,"","egg","Dairy & eggs"],[0.75,"cup","panko breadcrumbs","Pantry"],[1,"spray","cooking spray","Pantry"],[3,"tbsp","light mayo","Canned & jars"],[3,"tbsp","plain nonfat Greek yogurt","Dairy & eggs"],[3,"tbsp","sweet chili sauce","Canned & jars"],[1,"tsp","sriracha","Canned & jars"],[3,"cup","cooked rice","Grains & pasta"],[1,"","cucumber","Produce"],[1,"cup","shredded carrots","Produce"],[2,"","scallion","Produce"]],
+  steps:["Cut the chicken into 1-inch pieces. Toss with the beaten egg and a pinch of salt, then roll in the panko.","Spray the basket and the chicken, then air fry at 400°F for 12–14 minutes, shaking halfway (or bake at 425°F for 18 minutes).","Whisk the mayo, yogurt, sweet chili sauce and sriracha.","Toss the hot chicken in half the sauce. Serve over rice with the cucumber and carrots, and drizzle with the rest."],
+  tip:"Half yogurt and half mayo keeps the creamy kick for about a third of the calories." },
+
+{ id:"p-peanut-bowls", name:"Peanut chicken sweet potato bowls", meal:"dinner", minutes:20, servings:4,
+  kcal:450, protein:46, carbs:27, fat:18, fiber:6, diet:"any", allergens:["peanut","soy","gluten"], tags:["sheet-pan","batch","packable"],
+  fame:"Delish's #2 most popular recipe of 2025.",
+  ingredients:[[1.5,"lb","boneless chicken breast","Meat & seafood"],[2,"","sweet potatoes","Produce","medium"],[1,"tsp","olive oil","Pantry"],[4,"cup","baby spinach","Produce"],[1,"","avocado","Produce"],[2,"tbsp","peanut butter","Pantry"],[2,"tbsp","powdered peanut butter","Pantry"],[2,"tbsp","low-sodium soy sauce","Pantry"],[1,"","lime","Produce"],[1,"tbsp","honey","Pantry"],[1,"tsp","sriracha","Canned & jars"],[2,"tbsp","chopped peanuts","Pantry"]],
+  steps:["Heat the oven to 425°F. Cube the sweet potatoes, toss with the oil and salt, and roast 25 minutes on one side of a sheet pan.","After 5 minutes, add the seasoned chicken breasts to the other side and roast 18–20 minutes until cooked through. Slice.","Whisk both peanut butters, the soy sauce, lime juice, honey, sriracha and 3–4 tbsp warm water into a pourable sauce.","Build bowls with the spinach, sweet potato, chicken and avocado. Drizzle with the sauce and sprinkle with peanuts."],
+  tip:"Powdered peanut butter halves the fat in the sauce, and it still tastes like peanut butter." },
+
+/* ---------------- Snacks & treats ---------------- */
+{ id:"p-cc-icecream", name:"Strawberry cottage cheese ice cream", meal:"snack", minutes:5, servings:4,
+  kcal:145, protein:12, carbs:19, fat:3, fiber:1, diet:"vegetarian", allergens:["dairy"], tags:["make-ahead","freezer","treat"],
+  fame:"Google's #10 trending US recipe of 2023, popularized on TikTok.",
+  ingredients:[[2,"cup","2% cottage cheese","Dairy & eggs"],[2,"tbsp","honey","Pantry"],[1,"tsp","vanilla extract","Pantry"],[1.5,"cup","frozen strawberries","Frozen"]],
+  steps:["Blend everything until completely smooth, scraping down the sides. You shouldn't see any curds.","Spread it in a loaf pan or container and freeze 2–4 hours, stirring once halfway.","Let it sit out 10 minutes before scooping. A serving is about ½ cup."],
+  tip:"Try a chocolate version: swap the berries for 2 tbsp cocoa and 1 tbsp peanut butter." },
+
+{ id:"p-yogurt-clusters", name:"Chocolate strawberry yogurt clusters", meal:"snack", minutes:15, servings:5,
+  kcal:155, protein:6, carbs:19, fat:7, fiber:2, diet:"vegetarian", allergens:["dairy"], tags:["make-ahead","freezer","treat"],
+  fame:"A 2023 TikTok trend with more than 160 million views.",
+  ingredients:[[1.5,"cup","strawberries","Produce","chopped"],[1,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[1,"tbsp","honey","Pantry"],[0.5,"tsp","vanilla extract","Pantry"],[0.5,"cup","dark chocolate chips","Pantry"],[1,"tsp","coconut oil","Pantry"]],
+  steps:["Stir the strawberries, yogurt, honey and vanilla together.","Scoop 10 mounds onto a parchment-lined tray and freeze 1–2 hours until firm.","Melt the chocolate with the coconut oil in 20-second microwave bursts.","Dip or drizzle each cluster, then freeze again until set. A serving is 2 clusters."],
+  tip:"Keep them in a freezer bag. Let one sit 2 minutes before biting." },
+
+{ id:"p-date-bark", name:"Chocolate peanut butter date bark", meal:"snack", minutes:15, servings:8,
+  kcal:190, protein:3, carbs:29, fat:8, fiber:3, diet:"vegetarian", allergens:["peanut"], tags:["make-ahead","freezer","treat"],
+  fame:"@moribyan's chocolate-covered date \"Snickers\" got 30M+ views, and the pressed date bark version went viral in 2024.",
+  ingredients:[[10,"","Medjool dates","Produce"],[0.25,"cup","peanut butter","Pantry"],[2,"tbsp","chopped peanuts","Pantry"],[0.33,"cup","dark chocolate chips","Pantry"],[1,"tsp","coconut oil","Pantry"]],
+  steps:["Pit the dates and slice them open. Lay them side by side on parchment, cover with another sheet and press them flat into one slab.","Spread the peanut butter over the dates and sprinkle with the peanuts.","Melt the chocolate with the coconut oil and spread it over the top. Add a pinch of flaky salt.","Freeze 1 hour, then cut into 16 pieces. A serving is 2 pieces."],
+  tip:"It tastes like a candy bar. Keep it in the freezer so one serving stays one serving." },
+
+{ id:"p-cc-queso", name:"Cottage cheese queso with pepper scoops", meal:"snack", minutes:5, servings:6,
+  kcal:140, protein:12, carbs:9, fat:6, fiber:2, diet:"vegetarian", allergens:["dairy"], tags:[],
+  fame:"A TikTok-viral dip. It's made with blended cottage cheese, so it has far more protein than regular queso.",
+  ingredients:[[2,"cup","2% cottage cheese","Dairy & eggs"],[0.75,"cup","shredded pepper jack","Dairy & eggs"],[1,"tbsp","taco seasoning","Pantry"],[1,"can","diced green chiles (4 oz)","Canned & jars"],[3,"","bell pepper","Produce"]],
+  steps:["Blend the cottage cheese and taco seasoning until smooth.","Microwave it with the pepper jack in a bowl in 30-second bursts, stirring each time, until melted and smooth (about 2 minutes).","Stir in the chiles.","Serve warm with bell peppers cut into chip-size scoops. A serving is about ⅓ cup."],
+  tip:"Grate your own cheese. Pre-shredded cheese has a coating that keeps it from melting smoothly." },
+
+{ id:"p-cowboy-caviar", name:"Cowboy caviar", meal:"snack", minutes:15, servings:8,
+  kcal:170, protein:6, carbs:23, fat:7, fiber:7, diet:"vegan", allergens:[], tags:["make-ahead","no-cook","batch"],
+  fame:"Bria Lemirande's 2022 video (13M+ views) turned this Texas bean dip into a TikTok classic.",
+  ingredients:[[1,"can","black beans (15 oz)","Canned & jars","drained and rinsed"],[1,"can","black-eyed peas (15 oz)","Canned & jars","drained and rinsed"],[1,"cup","corn (frozen or canned)","Frozen"],[1,"","bell pepper","Produce"],[1,"cup","cherry tomatoes","Produce"],[0.5,"","red onion","Produce"],[1,"","avocado","Produce"],[1,"","jalapeño","Produce"],[2,"tbsp","olive oil","Pantry"],[2,"","lime","Produce"],[2,"tbsp","red wine vinegar","Pantry"],[2,"tsp","sugar","Pantry"],[1,"tsp","chili powder","Pantry"]],
+  steps:["Dice the pepper, tomatoes, onion, jalapeño and avocado about the size of a bean.","Whisk the oil, lime juice, vinegar, sugar, chili powder and ½ tsp salt.","Toss everything with the beans and corn. Chill 30 minutes.","Scoop with cucumber rounds or eat it with a spoon. A serving is about ¾ cup."],
+  tip:"Add the avocado just before serving if you're making it a day ahead." },
+
+{ id:"p-onion-chips", name:"Parmesan onion ring chips", meal:"snack", minutes:10, servings:2,
+  kcal:135, protein:7, carbs:8, fat:8, fiber:2, diet:"vegetarian", allergens:["dairy"], tags:[],
+  fame:"Google's #8 trending US recipe of 2025.",
+  ingredients:[[1,"","onion","Produce","large"],[0.5,"cup","grated parmesan","Dairy & eggs"],[1,"tsp","olive oil","Pantry"],[0.5,"tsp","garlic powder","Pantry"],[0.5,"tsp","paprika","Pantry"]],
+  steps:["Heat the oven to 400°F and line a sheet pan with parchment.","Slice the onion into thin rounds and separate the rings. Toss with the oil, garlic powder and paprika.","Lay the rings flat in a single layer and sprinkle the parmesan over and inside each one.","Bake 15–20 minutes until the cheese is golden and crisp. Cool 5 minutes so they firm up."],
+  tip:"They crisp more as they cool. Peel them off the parchment once they're firm." },
+
+{ id:"p-olympic-muffins", name:"Lighter Olympic chocolate muffins", meal:"snack", minutes:15, servings:12,
+  kcal:195, protein:8, carbs:26, fat:8, fiber:2, diet:"vegetarian", allergens:["gluten","egg","dairy"], tags:["make-ahead","freezer","packable","treat"],
+  fame:"The Olympic Village chocolate muffin was Google's #1 trending US recipe of 2024. This version uses yogurt and protein powder.",
+  ingredients:[[1.5,"cup","all-purpose flour","Pantry"],[0.5,"cup","unsweetened cocoa powder","Pantry"],[1,"scoop","chocolate whey protein","Pantry"],[1,"tsp","baking soda","Pantry"],[1,"cup","plain nonfat Greek yogurt","Dairy & eggs"],[2,"","eggs","Dairy & eggs"],[0.33,"cup","maple syrup","Pantry"],[3,"tbsp","neutral oil","Pantry"],[0.5,"cup","milk (2% or any)","Dairy & eggs"],[1,"tsp","vanilla extract","Pantry"],[0.5,"cup","dark chocolate chips","Pantry"]],
+  steps:["Heat the oven to 425°F and line a 12-cup muffin tin.","Whisk the flour, cocoa, protein powder, baking soda and ½ tsp salt in one bowl. Whisk the yogurt, eggs, maple syrup, oil, milk and vanilla in another.","Fold the wet into the dry until just combined, then stir in most of the chocolate.","Fill the cups to the top and dot with the rest of the chocolate.","Bake 5 minutes, then lower to 350°F and bake 15 more. The hot start gives them tall, bakery-style domes."],
+  tip:"Freeze them one at a time. A frozen muffin thaws by mid-morning." }
+);
+
+/* Recipes from the original book that are popular in their own right. */
+(function(){
+  const fame={
+    "l-caesar-wrap":"Chicken Caesar wraps were a 2025–26 TikTok trend, with lines out the door at viral wrap shops."
+  };
+  for (const r of CL.RECIPES) if (fame[r.id] && !r.fame) r.fame=fame[r.id];
+})();

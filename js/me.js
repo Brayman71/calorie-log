@@ -234,7 +234,7 @@ function settingsHTML(){
 function render(){
   const el=$("screen-me");
   if (!$("healthForm")){
-    el.innerHTML='<header class="screenhead"><h1>Me</h1><span class="hint">Private to this phone</span></header>'+
+    el.innerHTML='<header class="screenhead"><div><div class="eyebrow">Private to this phone</div><h1>Me</h1></div></header>'+
       '<section class="card" id="planResult"><h2 style="margin-bottom:8px">Your plan</h2><div id="prBody"></div></section>'+FORM+'<div id="settingsBox"></div>';
     fillForm();
   } else if (!dirty && !$("healthForm").contains(document.activeElement)) fillForm();   // e.g. a new weigh-in from Progress
