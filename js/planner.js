@@ -168,8 +168,17 @@ function finish(plan){
 const COUNT_UNITS=new Set(["","can","jar","bag","package","pack","block","bunch","head","clove","slice","link","scoop","pouch","container"]);
 const PLURAL={cup:"cups",slice:"slices",can:"cans",clove:"cloves",jar:"jars",bag:"bags",package:"packages",pack:"packs",block:"blocks",bunch:"bunches",head:"heads",link:"links",scoop:"scoops",pouch:"pouches",container:"containers",lb:"lb",oz:"oz",g:"g",tbsp:"tbsp",tsp:"tsp"};
 function unitText(u, q){ if (!u) return ""; return q>1.001? (PLURAL[u]||u) : u; }
+function singularName(name){
+  return name.replace(/^([^(]*?)(\s*\(.*)?$/, (m,a,b)=>{
+    if (/(tomato|potato)es$/.test(a)) a=a.slice(0,-2);
+    else if (/ies$/.test(a)) a=a.slice(0,-3)+"y";
+    else if (/(ch|sh|x)es$/.test(a)) a=a.slice(0,-2);
+    else if (/[^su]s$/.test(a) && !/is$/.test(a)) a=a.slice(0,-1);
+    return a+(b||"");
+  });
+}
 function pluralName(name, q){
-  if (q<=1.001) return name;
+  if (q<=1.001) return singularName(name);
   if (/(s|sh|ch|x)$/.test(name.split(" (")[0])) return name;
   if (/(tomato|potato)$/.test(name.split(" (")[0])) return name.replace(/^([^(]*?)(\s*\(.*)?$/, (m,a,b)=>a+"es"+(b||""));
   return name.replace(/^([^(]*?)(\s*\(.*)?$/, (m,a,b)=>a.replace(/y$/,"ie")+"s"+(b||""));

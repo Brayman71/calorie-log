@@ -15,12 +15,13 @@ function health(){ return CL.store.S.health || {}; }
 function weekLabel(wk){ return U.shortDate(wk)+" – "+U.shortDate(U.addDays(wk,6)); }
 
 function startMine(wk){
+  const before=CL.store.S.plans[wk];
   const plan=P.emptyWeek(planTargets(), health()); plan.weekStart=wk;
   CL.store.S.plans[wk]=plan; open.clear();
   CL.state.planDay = wk===U.weekStart(U.today())? U.dayIdx(U.today()) : 0;
   CL.state.planView="meals";
   CL.store.changed();
-  I.toast("Empty week ready. Tap Choose on any meal.");
+  I.toast("Empty week ready. Tap Choose on any meal.", before? ()=>{ CL.store.S.plans[wk]=before; CL.store.changed(); } : null);
 }
 
 function buildLibrary(wk, seed){
@@ -154,7 +155,7 @@ function render(){
   }
 
   const di=Math.min(6, Math.max(0, st.planDay||0)), view=st.planView||"meals";
-  const n=(plan.grocery||[]).reduce((a,s)=>a+s.items.length,0), done=Object.values(plan.checked||{}).filter(Boolean).length;
+  const n=(plan.grocery||[]).reduce((a,s)=>a+s.items.length,0), done=(plan.grocery||[]).reduce((a,s)=>a+s.items.filter(it=>(plan.checked||{})[s.section+"|"+it]).length,0);
   x+='<section class="card"><div class="between"><span class="chip">'+(plan.custom? icon("star")+"My picks" : plan.source==="library"? icon("book")+"Recipe book" : icon("sparkle")+"Written by Claude")+'</span>'+
     '<button type="button" class="btn small" data-planmenu="1">New plan</button></div><p style="margin-top:10px">'+esc(plan.summary||"")+'</p></section>';
   x+='<div class="tabs3" role="tablist"><button type="button" role="tab" data-view="meals" aria-selected="'+(view==="meals")+'">Meals</button>'+

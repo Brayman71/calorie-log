@@ -224,7 +224,7 @@ function settingsHTML(){
     '<p class="fine">Get a key at console.anthropic.com → API Keys, and set a monthly spend limit there. Typical cost: 1–3¢ per photo, 10–25¢ per custom week (model: '+CL.claude.MODEL+'). The key is stored only on this phone and sent only to Anthropic. Anyone who can unlock your phone and open this app could use it.</p></section>'+
   '<section><h3>Food database key (optional)</h3><p class="hint">Barcode scans use Open Food Facts first. USDA FoodData Central is the backup and also adds US branded foods to search; its shared demo key only allows a few lookups an hour. A free personal key from api.data.gov/signup allows 1,000 an hour.</p>'+
     '<div class="keyrow"><input type="text" id="fdcKey" autocomplete="off" spellcheck="false" placeholder="USDA key" value="'+(fdc==="DEMO_KEY"? "" : esc(fdc))+'" aria-label="USDA API key"><button type="button" class="btn small" data-set="fdc">Save</button></div></section>'+
-  '<section><h3>Backup</h3><p class="hint">Everything is stored on this phone only. Save a backup now and then, and use it to move to a new phone or bring over data from the Claude version of the app.</p>'+
+  '<section><h3>Backup</h3><p class="hint">Everything is stored on this phone only. Save a backup now and then, and use it to move to a new phone or bring over data from the Claude version of the app.'+(St.S.profile.lastBackup? ' Last backup: <b>'+esc(U.shortDate(St.S.profile.lastBackup))+'</b>.' : "")+'</p>'+
     '<div class="row"><button type="button" class="btn small" data-set="export">'+icon("share")+'Save backup</button><button type="button" class="btn small" data-set="import">Restore from file</button><button type="button" class="btn small" data-set="paste">Paste backup</button></div></section>'+
   '<section><h3>Appearance</h3><div class="seg"><label><input type="radio" name="theme" value="system"'+(theme==="system"? " checked" : "")+'>Auto</label><label><input type="radio" name="theme" value="light"'+(theme==="light"? " checked" : "")+'>Light</label><label><input type="radio" name="theme" value="dark"'+(theme==="dark"? " checked" : "")+'>Dark</label></div></section>'+
   '<section><h3>Start over</h3><button type="button" class="btn small danger" data-set="reset" style="justify-self:start">Delete all my data</button></section>'+
@@ -272,10 +272,12 @@ function onSubmit(e){
   I.toast("Plan saved: "+U.fmt(M.goals().goal)+" kcal a day");
 }
 
-function download(name, text){
+function markBackup(){ St.S.profile.lastBackup=U.today(); St.S.profile.backupSnooze=null; St.changed(); }
+function download(name, text, done){
   const blob=new Blob([text], {type:"application/json"});
   const file=new File([blob], name, {type:"application/json"});
-  if (navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:"Calorie Log backup"}).catch(()=>{}); return; }
+  if (navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:"Calorie Log backup"}).then(()=>{ if (done) done(); }).catch(()=>{}); return; }
+  if (done) done();
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
@@ -289,6 +291,8 @@ function doImport(text){
     I.closeSheet(); I.toast("Backup restored");
   } catch(e){ alert(e.message && !/JSON/.test(e.message)? e.message : "That isn't a Calorie Log backup file."); }
 }
+
+function backupNow(){ St.saveNow(); download("calorie-log-backup-"+U.today()+".json", St.exportJSON(), markBackup); }
 
 async function onClick(e){
   const b=e.target.closest("[data-set]"); if (!b) return;
@@ -310,7 +314,7 @@ async function onClick(e){
   }
   if (a==="delkey"){ if (confirm("Remove the API key from this phone?")){ St.setApiKey(""); $("settingsBox").innerHTML=settingsHTML(); CL.app.renderAll(); } return; }
   if (a==="fdc"){ CL.foodapi.setFdcKey($("fdcKey").value.trim()); I.toast("Saved"); return; }
-  if (a==="export"){ St.saveNow(); download("calorie-log-backup-"+U.today()+".json", St.exportJSON()); return; }
+  if (a==="export"){ backupNow(); return; }
   if (a==="import"){ $("importInput").value=""; $("importInput").click(); return; }
   if (a==="paste"){
     const el=I.openSheet({title:"Paste backup", body:'<p class="hint">Paste the text of a backup file, including from the Claude version of the app.</p><textarea id="pasteBox" rows="10" placeholder="{ … }"></textarea>', foot:'<button type="button" class="btn primary" id="pasteGo">Restore</button>'});
@@ -338,5 +342,5 @@ function onChange(e){
   if (t.id==="importInput"){ const f=t.files && t.files[0]; if (f) f.text().then(doImport); }
 }
 
-CL.me={render, onInput, onSubmit, onClick, onChange, get dirty(){ return dirty; }};
+CL.me={backupNow, render, onInput, onSubmit, onClick, onChange, get dirty(){ return dirty; }};
 })();

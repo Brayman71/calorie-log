@@ -130,6 +130,41 @@ function reviewBanner(date){
   return '<section class="card banner">'+icon("chart")+'<div class="grow"><b>Your weekly check-in is ready</b><p>How last week went, and one thing to try this week.</p></div><button type="button" class="btn small primary" data-review="1">See it</button></section>';
 }
 
+/* Weight milestones: every 5 lb (or 2 kg) of trend loss, plus halfway and goal. Shown once each. */
+function milestone(){
+  const S=CL.store.S, pr=S.profile;
+  if (S.weights.length<3) return null;
+  const tr=CL.math.trend(S.weights), first=tr[0].kg, now=tr[tr.length-1].trend;
+  const us=CL.store.isUS(), step=us? 5*U.KG_PER_LB : 2, unit=CL.store.wUnit();
+  const lost=first-now, level=Math.floor(lost/step+0.001);
+  const goalKg=S.health && S.health.goalKg;
+  const atGoal=goalKg && goalKg<first && now<=goalKg;
+  const half=goalKg && goalKg<first-step && lost>=(first-goalKg)/2;
+  const key= atGoal? "goal" : level>=1? "L"+level : null;
+  const halfKey= half? "half" : null;
+  const seen=pr.msSeen||[];
+  if (atGoal && !seen.includes("goal") || !atGoal && level>(pr.msLevel||0)){
+    if (atGoal) return {key, level, title:"You reached your goal weight", text:"Your trend weight is at "+CL.store.wFmt(now)+" "+unit+". Head to Me to switch your plan to maintaining, so the target stops cutting."};
+    return {key, level, title:"Down "+U.g1(CL.store.toDisp(level*step))+" "+unit+" on your trend", text:"That's real loss, not water noise. Whatever you've been doing is working, so keep it boring and keep going."};
+  }
+  if (halfKey && !seen.includes(halfKey)) return {key:halfKey, level, title:"Halfway to your goal", text:"You've lost "+U.g1(CL.store.toDisp(lost))+" "+unit+" on your trend. The second half goes the same way: one day at a time."};
+  return null;
+}
+function extraBanner(date){
+  if (date!==U.today()) return "";
+  const ms=milestone();
+  if (ms) return '<section class="card banner cheer">'+icon("trophy")+'<div class="grow"><b>'+esc(ms.title)+'</b><p>'+esc(ms.text)+'</p></div><button type="button" class="iconbtn ghost" data-ms="'+ms.key+'" aria-label="Done">'+icon("check")+'</button></section>';
+  // Backup reminder: data lives only on this phone
+  const S=CL.store.S, pr=S.profile, today=U.today();
+  const logged=Object.keys(S.days||{}).length;
+  const due=!pr.lastBackup || U.addDays(pr.lastBackup, 30)<=today;
+  if (logged>=7 && due && !(pr.backupSnooze && pr.backupSnooze>today)){
+    return '<section class="card banner">'+icon("shield")+'<div class="grow"><b>Save a backup</b><p>'+(pr.lastBackup? "Your last one was "+U.shortDate(pr.lastBackup)+"." : "Your logs live only on this phone.")+' Save a copy to Files or iCloud Drive in case the phone gets lost or reset.</p>'+
+      '<div class="row" style="margin-top:8px"><button type="button" class="btn small primary" data-backup="1">'+icon("share")+'Save backup</button><button type="button" class="btn small ghost" data-backupx="1">Later</button></div></div></section>';
+  }
+  return "";
+}
+
 function mealCard(date, meal){
   const list=CL.store.peekDay(date).entries.filter(e=>e.meal===meal);
   const kcal=list.reduce((a,e)=>a+(e.kcal||0),0);
@@ -158,7 +193,8 @@ function render(){
     x+='<section class="card banner"><div class="grow"><b>Set up your plan</b><p>Answer a few questions and the app works out a calorie target that doesn\'t feel like a punishment.</p></div><button type="button" class="btn primary small" data-tabgo="me">Start</button></section>';
   }
 
-  x+=reviewBanner(date);
+  const rb=reviewBanner(date);
+  x+= rb || extraBanner(date);
   x+=nudgeCard(date, G, T);
 
   // Calories left
@@ -210,7 +246,10 @@ function onClick(ev){
   if (b.dataset.logplan){ CL.planUI.logSlot(date, b.dataset.logplan); return; }
   if (b.dataset.nscan){ CL.add.open({meal:b.dataset.nscan, date}); CL.add.openScanner(); return; }
   if (b.dataset.nudgex){ CL.store.S.profile.nudgeHide=U.today()+":"+b.dataset.nudgex; CL.store.changed(); return; }
-  if (b.dataset.review){ CL.store.S.profile.reviewSeen=U.addDays(U.weekStart(U.today()), -7); CL.store.changed(); CL.app.setTab("progress"); return; }
+  if (b.dataset.ms){ const pr=CL.store.S.profile, m=milestone(); if (b.dataset.ms==="goal" || b.dataset.ms==="half") pr.msSeen=[...(pr.msSeen||[]), b.dataset.ms]; pr.msLevel=Math.max(pr.msLevel||0, m? m.level : 0); CL.store.changed(); return; }
+  if (b.dataset.backup){ CL.me.backupNow(); return; }
+  if (b.dataset.backupx){ CL.store.S.profile.backupSnooze=U.addDays(U.today(), 7); CL.store.changed(); return; }
+  if (b.dataset.review){ CL.store.S.profile.reviewSeen=U.addDays(U.weekStart(U.today()), -7); CL.progress.resetWeek(); CL.store.changed(); CL.app.setTab("progress"); return; }
   if (b.dataset.water){
     const d=CL.store.day(date), v=b.dataset.water;
     if (v==="+1") d.water=(d.water||0)+1;

@@ -56,6 +56,20 @@ function closeSheet(){
 }
 function sheetOpen(){ return !$("sheet").hidden; }
 
+/* ---------- Cook mode: keep the screen on while a recipe is open ---------- */
+let wakeLock=null;
+async function syncWake(){
+  if (!("wakeLock" in navigator)) return;
+  const need=!document.hidden && [...document.querySelectorAll("details.recipe[open]")].some(d=>d.offsetParent!==null);
+  try {
+    if (need && !wakeLock){ wakeLock=await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", ()=>{ wakeLock=null; }); }
+    else if (!need && wakeLock){ const w=wakeLock; wakeLock=null; await w.release(); }
+  } catch(e){ wakeLock=null; }
+}
+document.addEventListener("toggle", syncWake, true);
+document.addEventListener("visibilitychange", syncWake);
+document.addEventListener("click", ()=>setTimeout(syncWake, 300), true);   // tab switches and closed sheets
+
 /* ---------- Food log actions ---------- */
 function scaleFood(food, servings){
   const s=servings>0? servings : 1;

@@ -58,9 +58,13 @@ function weekReview(wk){
   const n=days.filter(x=>x.logged).length;
   const L=days.filter(x=>x.logged && x.d<today), m=L.length;      // averages skip today, which is still in progress
   const avgK=m>=2? L.reduce((a,x)=>a+x.T.kcal,0)/m : null, avgP=m>=2? L.reduce((a,x)=>a+x.T.protein,0)/m : null;
-  const tr=CL.math.trend(S.weights), end=trendAt(tr, U.addDays(wk,6)), start=trendAt(tr, U.addDays(wk,-1));
+  const tr=CL.math.trend(S.weights), end=trendAt(tr, U.addDays(wk,6));
   const weighins=S.weights.filter(w=>w.date>=wk && w.date<=U.addDays(wk,6)).length;
-  const change = end && start && end.date>=wk? end.trend-start.trend : null;
+  // Baseline: the trend just before the week, if it's recent. Otherwise the first weigh-in of the week (needs 3+ that week).
+  let start=trendAt(tr, U.addDays(wk,-1));
+  if (start && start.date<U.addDays(wk,-7)) start=null;
+  if (!start && weighins>=3) start=tr.find(p=>p.date>=wk);
+  const change = end && start && end.date>=wk && end.date>start.date? end.trend-start.trend : null;
   const notes=[];   // [kind, text]  kind: good | tip | info
   // Logging
   const span=days.length;
@@ -82,7 +86,7 @@ function weekReview(wk){
   }
   // Weight trend
   if (change==null){
-    if (weighins<2) notes.push(["info", "Weigh in 3 or more mornings this week to see your trend."]);
+    if (weighins<3) notes.push(["info", "Weigh in 3 or more mornings this week to see your trend."]);
   } else {
     const ch=St.toDisp(Math.abs(change)), pace=p && p.kgPerWeek || 0, kg=St.latestKg()||80;
     const weeksOfData = S.weights.length? (U.parseDay(S.weights[S.weights.length-1].date)-U.parseDay(S.weights[0].date))/864e5/7 : 0;
@@ -169,5 +173,5 @@ function onClick(e){
   I.toast("Weigh-in deleted", ()=>{ St.logWeight(gone.date, gone.kg); St.changed(); });
 }
 
-CL.progress={render, onSubmit, onClick};
+CL.progress={render, onSubmit, onClick, resetWeek(){ reviewWk=null; }};
 })();

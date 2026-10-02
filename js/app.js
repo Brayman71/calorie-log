@@ -33,10 +33,12 @@ function render(){
 function renderAll(){ render(); }
 
 /* Keep "today" correct if the app stays open past midnight. */
-let lastDay=U.today();
+let lastDay=U.today(), lastPart=dayPart();
+function dayPart(){ const h=new Date().getHours(); return [4,5,11,12,17,19].filter(x=>h>=x).length; }   // greeting and check-in boundaries
 function checkDayRollover(){
-  const t=U.today();
-  if (t!==lastDay){ if (CL.state.date===lastDay) CL.state.date=t; if (CL.state.week===U.weekStart(lastDay)) CL.state.week=U.weekStart(t); lastDay=t; render(); }
+  const t=U.today(), p=dayPart();
+  if (t!==lastDay){ if (CL.state.date===lastDay) CL.state.date=t; if (CL.state.week===U.weekStart(lastDay)) CL.state.week=U.weekStart(t); lastDay=t; lastPart=p; render(); return; }
+  if (p!==lastPart){ lastPart=p; const a=document.activeElement; if (CL.state.tab==="today" && !(a && /INPUT|TEXTAREA/.test(a.tagName))) render(); }
 }
 
 function wire(){

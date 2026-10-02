@@ -399,3 +399,10 @@ details.math li span{display:block;font-size:13px;color:var(--muted)}
 .eatcta>svg.i:first-child{width:24px;height:24px;color:var(--td-ink)}
 .eatcta b{font-size:15px}
 .eatcta .hint{display:block;font-size:13px}
+
+/* Milestone banner */
+.banner.cheer{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff}
+.banner.cheer p{color:rgba(255,255,255,.88)}
+.banner.cheer>svg.i{color:#FFD66B}
+.banner.cheer .iconbtn{color:#fff}
+.banner .btn.ghost{background:transparent;box-shadow:none}
