@@ -11,7 +11,7 @@ CL.FOODS = [
   ["Banana","1 medium",105,1.3,27,0.4],["Apple","1 medium",95,0.5,25,0.3],
   ["Orange","1 medium",62,1.2,15.4,0.2],["Blueberries","1 cup",84,1.1,21,0.5],
   ["Strawberries","1 cup",49,1,11.7,0.5],["Grapes","1 cup",104,1.1,27,0.2],
-  ["Greek yogurt, plain nonfat","170 g cup",100,17,6,0.7],["Cottage cheese, 2%","½ cup",92,12,5,2.5],
+  ["Greek yogurt, plain nonfat","¾ cup (170 g)",100,17,6,0.7],["Cottage cheese, 2%","½ cup",92,12,5,2.5],
   ["Milk, 2%","1 cup",122,8,12,4.8],["Cheddar cheese","1 oz",114,7,0.4,9.4],
   ["Mozzarella, part-skim","1 oz",72,6.9,0.8,4.5],["Whey protein shake","1 scoop",120,24,3,1.5],
   ["Chicken breast, cooked","4 oz",187,35,0,4],["Ground beef 85/15, cooked","4 oz",280,28,0,18],
@@ -32,6 +32,17 @@ CL.FOODS = [
   ["Beer, regular","12 oz",153,1.6,13,0],["Red wine","5 oz glass",125,0.1,3.8,0],
   ["Granola","½ cup",300,7,32,15],["Rice cake, plain","1 cake (9 g)",35,0.7,7.3,0.3],["Honey","1 tbsp",64,0.1,17.3,0],
   ["Mixed berries","1 cup",70,1,17,0.5],["Raspberries","1 cup",64,1.5,14.7,0.8],["Maple syrup","1 tbsp",52,0,13.4,0],
-  ["Strawberry jam","1 tbsp",56,0.1,13.8,0],["Chia seeds","1 tbsp",58,2,5,3.7],["Hummus","2 tbsp",70,2,4,5],
+  ["Strawberry jam","1 tbsp",56,0.1,13.8,0],["Chia seeds","1 tbsp",58,2,5,3.7],
   ["Cream cheese","1 tbsp",50,0.9,0.8,5],["Almond butter","2 tbsp",196,6.8,6,17.8],["Turkey sandwich","1 sandwich",320,22,34,10]
 ].map(([name,serving,kcal,protein,carbs,fat])=>({name,serving,kcal,protein,carbs,fat,src:"lib"}));
+/* Grams per serving (USDA), so amounts can be weighed on a kitchen scale. */
+(function(){
+  const G={"Egg, large":50,"Egg whites":33,"Bacon":16,"Oatmeal, cooked":234,"Pancakes":76,"Corn flakes cereal":28,"Bagel, plain":105,"Whole wheat bread":32,"White bread":29,
+    "Flour tortilla":49,"Peanut butter":32,"Butter":14,"Olive oil":13.5,"Avocado":100,"Banana":118,"Apple":182,"Orange":131,"Blueberries":148,"Strawberries":152,"Grapes":151,
+    "Greek yogurt, plain nonfat":170,"Cottage cheese, 2%":113,"Milk, 2%":244,"Cheddar cheese":28,"Mozzarella, part-skim":28,"Whey protein shake":30,"Chicken breast, cooked":113,
+    "Ground beef 85/15, cooked":113,"Sirloin steak, cooked":113,"Salmon, cooked":113,"Tuna, canned in water":85,"Shrimp, cooked":85,"Tofu, firm":126,"Black beans, cooked":172,
+    "Hummus":30,"White rice, cooked":158,"Brown rice, cooked":195,"Pasta, cooked":140,"Quinoa, cooked":185,"Potato, baked":173,"Sweet potato, baked":114,"Broccoli, cooked":156,
+    "Spinach, raw":30,"Mixed salad greens":70,"Carrot, raw":61,"Almonds":28,"Dark chocolate 70%":28,"Potato chips":28,"Vanilla ice cream":66,"Cheese pizza":107,"French fries":117,
+    "Granola":61,"Rice cake, plain":9,"Honey":21,"Mixed berries":145,"Raspberries":123,"Maple syrup":20,"Strawberry jam":20,"Chia seeds":12,"Cream cheese":14.5,"Almond butter":32};
+  for (const f of CL.FOODS) if (G[f.name]) f.servingG=G[f.name];
+})();

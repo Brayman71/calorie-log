@@ -26,12 +26,11 @@ const SYNONYMS={toast:"bread", oj:"orange juice", pb:"peanut butter", shake:"pro
 let multi=[];
 /* "a drizzle of honey", "a layer of yogurt": everyday amounts, in tablespoons */
 const PORTION_WORDS={drizzle:0.33, drizzled:0.33, pat:0.33, splash:1, sprinkle:1, sprinkled:1, spoonful:1, spoon:1, smear:1, dollop:2, spread:1.5, layer:4, handful:8, scoop:null};
-function servingTbsp(serving){
-  const m=String(serving||"").toLowerCase().match(/(\d+(?:\.\d+)?|½|¼|⅓|¾)?\s*(cups?|tbsp|tsp|oz|g|ml)\b/);
-  if (!m) return null;
-  const n=m[1]==null? 1 : ({"½":0.5,"¼":0.25,"⅓":0.33,"¾":0.75})[m[1]] || +m[1];
-  const per={cup:16, cups:16, tbsp:1, tsp:1/3, oz:2, g:1/15, ml:1/15}[m[2]];
-  return n*per || null;
+/* About how many tablespoons one serving is: its volume, or its weight (about 15 g or ½ oz per tbsp). */
+function servingTbsp(food){
+  const v=servingVolTbsp(food.serving); if (v) return v;
+  const g=servingGrams(food); if (g) return g/15;
+  const oz=/(\d+(?:\.\d+)?)\s*oz\b/i.exec(food.serving||""); return oz? +oz[1]*2 : null;
 }
 function volText(tbsp){
   if (tbsp<1) return Math.max(1, Math.round(tbsp*3))+" tsp";
@@ -40,18 +39,28 @@ function volText(tbsp){
 }
 function norm(w){ return w.toLowerCase().replace(/[^a-z0-9½¼]/g,"").replace(/ies$/,"y").replace(/([^s])s$/,"$1"); }
 function splitItems(q){
-  const parts=q.split(/\s*(?:,|\+|;|\band\b|\n)\s*/i).map(t=>t.trim()).filter(Boolean);
-  return parts.length>=2? parts : null;
+  const out=[];
+  for (const part of q.split(/\s*(?:,|\+|;|\n)\s*/).map(t=>t.trim()).filter(Boolean)){
+    const ps=part.split(/\s+(?:and|&)\s+/i).map(t=>t.trim()).filter(Boolean).map(parseItem);
+    const lead=ps[0];
+    if (ps.length>1 && lead.vol){                 // one handful of two things: split it between them
+      const share=ps.filter((p,i)=>i===0 || (!p.vol && !p.hasQty));
+      const v=lead.vol;
+      share.forEach(p=>{ p.vol=v/share.length; p.pword=lead.pword; p.qty=lead.qty; p.shared=share.length; });
+    }
+    out.push(...ps);
+  }
+  return out.length>=2 || (out.length===1 && out[0].vol)? out : null;
 }
 function parseItem(text){
-  let t=text.toLowerCase().trim(), qty=1;
+  let t=text.toLowerCase().trim(), qty=1, hasQty=false;
   const m=t.match(/^(\d+\/\d+|\d+(?:\.\d+)?|½|¼|a|an|one|two|three|four|five|six|half)(?=\s|$)\s*(?:a\s+|an\s+)?/);
-  if (m){ const v=m[1]; qty= QTY_WORDS[v]!=null? QTY_WORDS[v] : v.includes("/")? (+v.split("/")[0])/(+v.split("/")[1]) : +v; t=t.slice(m[0].length); }
-  const x=t.match(/\s*x\s*(\d+(?:\.\d+)?)$/); if (x){ qty*=+x[1]; t=t.slice(0, x.index); }
+  if (m){ hasQty=true; const v=m[1]; qty= QTY_WORDS[v]!=null? QTY_WORDS[v] : v.includes("/")? (+v.split("/")[0])/(+v.split("/")[1]) : +v; t=t.slice(m[0].length); }
+  const x=t.match(/\s*x\s*(\d+(?:\.\d+)?)$/); if (x){ hasQty=true; qty*=+x[1]; t=t.slice(0, x.index); }
   let vol=null, pword=null;
   let words=t.split(/\s+/).filter(w=>{ const k=w.replace(/[^a-z]/g,""); if (k in PORTION_WORDS){ pword=k.replace(/ed$/,""); vol=PORTION_WORDS[k]; return false; } return true; }).filter(w=>w && !SKIP_WORDS.has(w));
   words=words.flatMap(w=>(SYNONYMS[w]||w).split(" ")).map(norm).filter(Boolean);
-  return {text, qty:qty>0 && qty<50? qty : 1, words, vol, pword};
+  return {text, qty:qty>0 && qty<50? qty : 1, hasQty, words, vol, pword};
 }
 function bestFood(words, pool){
   if (!words.length) return null;
@@ -70,13 +79,13 @@ function multiHTML(q){
   if (!items) return "";
   const pr=CL.store.S.profile;
   const pool=dedupe([...(pr.favorites||[]), ...(pr.recents||[]), ...CL.store.S.myFoods, ...CL.FOODS, ...recipeFoods(), ...fastFoods()]);
-  multi=items.map(t=>{
-    const p=parseItem(t), food=bestFood(p.words, pool);
-    if (food && /^½\s/.test(food.serving||"")) p.qty*=2;      // "½ avocado" when the serving is already half of one
+  multi=items.map(p=>{
+    const food=bestFood(p.words, pool);
+    if (food && !p.vol && /^½\s/.test(food.serving||"")) p.qty*=2;      // "½ avocado" when the serving is already half of one
     let use=food;
     if (food && p.vol){                                       // "a drizzle of honey" → about 1 tsp of a 1 tbsp serving
-      const st=servingTbsp(food.serving);
-      if (st){ const tb=p.vol*p.qty, k=tb/st; use=Object.assign({}, food, I.scaleFood(food, k), {serving:p.pword+" (about "+volText(tb)+")", per100:null, servingG:null}); p.qty=1; }
+      const st=servingTbsp(food);
+      if (st){ const tb=p.vol*p.qty, k=tb/st, g=servingGrams(food); use=Object.assign({}, food, I.scaleFood(food, k), {serving:(p.shared? "part of a " : "")+p.pword+" (about "+volText(tb)+")", per100:null, servingG:g? Math.round(g*k) : null}); p.qty=1; }
     }
     return Object.assign(p, {food:use});
   });
@@ -265,18 +274,70 @@ async function searchOnline(q){
 }
 
 /* ---------- Portion editor ---------- */
+/* Amount units: servings, plus cups/tbsp when the serving is a volume, and grams/oz when its weight is known. */
+const VFRAC={"½":0.5,"¼":0.25,"⅓":1/3,"¾":0.75,"⅔":2/3,"⅛":0.125};
+function servingVolTbsp(serving){
+  const m=String(serving||"").toLowerCase().match(/(?:(\d+(?:\.\d+)?)\s*(?:(\d+)\/(\d+))?|(\d+)\/(\d+))?\s*(½|¼|⅓|¾|⅔|⅛)?\s*(cups?|tbsp|tablespoons?|tsp|teaspoons?)\b/);
+  if (!m) return null;
+  let n=0;
+  if (m[4]) n=+m[4]/+m[5];
+  else { if (m[1]) n+=+m[1]; if (m[2]) n+=+m[2]/+m[3]; }
+  if (m[6]) n+=VFRAC[m[6]];
+  if (!n) n=1;
+  const u=m[7];
+  return n*(/^cup/.test(u)? 16 : /^t(bsp|ablespoon)/.test(u)? 1 : 1/3);
+}
+function servingGrams(food){
+  if (food.servingG>0) return food.servingG;
+  const m=String(food.serving||"").match(/(\d+(?:\.\d+)?)\s*(g|ml)\b/i);
+  return m? +m[1] : (food.per100? 100 : null);
+}
+function countWord(food){
+  const w=(/^1\s+([a-z]+)\b/i.exec(food.serving||"")||[])[1];
+  return w && !/^(cup|cups|oz|g|tbsp|tsp|serving|order|ml|medium|large|small)$/i.test(w)? w.toLowerCase() : null;
+}
+function fmtAmt(v){ return String(Math.round(v*100)/100); }
+function plural(w, n){ return n>1 && !/s$/.test(w)? w+"s" : w; }
+/* Each unit: how many of it make one serving. */
 function amountUnits(food){
-  const u=[["serving", food.serving? "× "+food.serving : "servings"]];
-  if (food.per100) u.push(["g", food.base==="ml"? "ml" : "grams"]);
+  const cw=countWord(food), vol=servingVolTbsp(food.serving), g=servingGrams(food), ml=food.base==="ml";
+  const u=[{id:"serving", per:1, label: cw? plural(cw,2) : "servings"+(food.serving? " ("+food.serving+")" : "")}];
+  if (vol){ u.push({id:"cup", per:vol/16, label:"cups"}); u.push({id:"tbsp", per:vol, label:"tbsp"}); }
+  if (g){ u.push({id:"g", per:g, label:ml? "ml" : "grams"}); if (!ml) u.push({id:"oz", per:g/28.35, label:"oz"}); }
   return u;
+}
+function unitOf(food, id){ return amountUnits(food).find(u=>u.id===id) || amountUnits(food)[0]; }
+function niceAmount(id, v){
+  if (id==="g") return Math.round(v);
+  if (id==="oz") return Math.round(v*2)/2;
+  if (id==="cup") return Math.round(v*8)/8;
+  if (id==="tbsp") return Math.round(v*2)/2;
+  return Math.round(v*4)/4;
+}
+function amountText(food, id, v){
+  if (id==="g") return Math.round(v)+(food.base==="ml"? " ml" : " g");
+  if (id==="oz") return U.g1(v)+" oz";
+  if (id==="cup") return U.frac(v)+" cup";
+  if (id==="tbsp") return U.frac(v)+" tbsp";
+  const cw=countWord(food);
+  return cw? U.frac(v)+" "+plural(cw, v) : v===1? "1 serving" : U.frac(v)+" servings";
 }
 function computeFor(food, amount, unit){
   if (unit==="g" && food.per100){
     const k=amount/100, p=food.per100, r=v=>v==null? null : Math.round(v*k*10)/10;
     return {kcal:Math.round(p.kcal*k), protein:r(p.protein)||0, carbs:r(p.carbs)||0, fat:r(p.fat)||0, fiber:r(p.fiber)};
   }
-  return I.scaleFood(food, amount);
+  return I.scaleFood(food, amount/unitOf(food, unit).per);
 }
+/* Where a new portion starts: grams for scale users, cups for cup-sized foods, otherwise servings. */
+function defaultUnit(food){
+  const ids=amountUnits(food).map(u=>u.id);
+  if (CL.store.S.profile.scale && ids.includes("g")) return "g";
+  if (ids.includes("cup") && servingVolTbsp(food.serving)>=4) return "cup";
+  if (ids.includes("tbsp")) return "tbsp";
+  return "serving";
+}
+const CHIPS={serving:[0.5,1,1.5,2,3], cup:[0.25,1/3,0.5,2/3,0.75,1,1.5,2], tbsp:[1,2,3,4], oz:[1,2,3,4,6,8]};
 function nutGrid(n){
   return '<div class="nutgrid num"><div><b>'+U.fmt(n.kcal)+'</b><span>kcal</span></div><div><b>'+U.g1(n.protein)+'</b><span>Protein</span></div><div><b>'+U.g1(n.carbs)+'</b><span>Carbs</span></div><div><b>'+U.g1(n.fat)+'</b><span>Fat</span></div><div><b>'+(n.fiber==null? "–" : U.g1(n.fiber))+'</b><span>Fiber</span></div></div>';
 }
@@ -304,11 +365,11 @@ function suggestAmount(food, B){
   if (!n) return null;
   return {amount:n, kcal:Math.round(k*n), protein:Math.round((food.protein||0)*n), partner:pShare<0.2 && B.left>k*2.5};
 }
-function suggestHTML(food, date, meal){
+function suggestHTML(food, date, meal, unit){
   const B=mealBudget(date, meal), sg=suggestAmount(food, B), m=meal.toLowerCase();
   if (!sg) return '<div class="suggest"><b>Your '+m+' budget is used up.</b> <span class="hint">That\'s okay. This just comes out of the rest of your day.</span></div>';
-  const w=(/^1\s+([a-z]+)\b/i.exec(food.serving||"")||[])[1], unitW=w && !/^(cup|oz|g|tbsp|tsp|serving|order|ml)$/i.test(w)? w.toLowerCase() : null;
-  const what= unitW? U.frac(sg.amount)+" "+(sg.amount>1 && !/s$/.test(unitW)? unitW+"s" : unitW) : sg.amount===1? "1 serving" : U.frac(sg.amount)+" servings";
+  unit=unit||"serving";
+  const what=amountText(food, unit, niceAmount(unit, sg.amount*unitOf(food, unit).per));
   return '<div class="suggest">'+icon("sparkle")+'<div class="grow"><b>Suggested: '+what+'</b> <span class="hint">('+U.fmt(sg.kcal)+' kcal, '+sg.protein+' g protein). '+
     'Your '+m+' has '+U.fmt(B.left)+' of '+U.fmt(B.kcal)+' kcal left'+(sg.partner? ', so this leaves room to add some protein.' : '.')+'</span></div>'+
     '<button type="button" class="btn small soft" data-sug="'+sg.amount+'">Use</button></div>';
@@ -334,8 +395,8 @@ function pairings(date, meal, added){
       let n=Math.min(pNeed/f.protein, B.left/f.kcal, 3); n=roundServ(n, f.kcal);
       if (n<0.5 && f.kcal*0.5<=B.left) n=0.5;
       if (n<0.5) return null;
-      const grams = f.per100 && f.servingG? Math.round(n*f.servingG/10)*10 : null;
-      return {f, n, grams, kcal:Math.round(f.kcal*n), protein:Math.round(f.protein*n), own:hist.has(I.foodKey(f))};
+      const du=defaultUnit(f), amt=du==="g"? Math.round(n*unitOf(f,"g").per/5)*5 : niceAmount(du, n*unitOf(f, du).per);
+      return {f, n, du, amt, label:amountText(f, du, amt), kcal:Math.round(f.kcal*n), protein:Math.round(f.protein*n), own:hist.has(I.foodKey(f))};
     }).filter(Boolean).sort((a,b)=>(b.own-a.own) || (b.protein-a.protein)).slice(0,3).map(x=>Object.assign(x, {mealK:B.used+x.kcal, mealP:Math.round(B.pUsed+x.protein)}));
 }
 function pairingSheet(date, meal, added){
@@ -343,13 +404,13 @@ function pairingSheet(date, meal, added){
   if (!list.length) return false;
   const B=mealBudget(date, meal), m=meal.toLowerCase();
   const body='<p>Your '+m+' is at <b>'+U.fmt(B.used)+' kcal</b> and <b>'+Math.round(B.pUsed)+' g protein</b> so far. Add one of these to round it out:</p>'+
-    '<ul class="results">'+list.map((x,i)=>'<li><button type="button" class="res" data-pair="'+i+'"><div class="grow"><div class="nm">'+(x.grams? x.grams+" g " : x.n!==1? U.frac(x.n)+" × " : "")+esc(x.f.name)+(x.own? ' <span class="tag">Yours</span>' : "")+'</div>'+
+    '<ul class="results">'+list.map((x,i)=>'<li><button type="button" class="res" data-pair="'+i+'"><div class="grow"><div class="nm">'+esc(x.label)+" "+esc(x.f.name)+(x.own? ' <span class="tag">Yours</span>' : "")+'</div>'+
       '<div class="sub">+'+U.fmt(x.kcal)+' kcal, +'+x.protein+' g protein → '+m+' '+U.fmt(x.mealK)+' kcal · '+x.mealP+' g protein</div></div>'+icon("plus")+'</button></li>').join("")+'</ul>'+
     '<p class="fine">Sized to fill your '+m+' budget ('+U.fmt(B.kcal)+' kcal) and get closer to about '+B.pTarget+' g protein for the meal. Tap one to adjust the amount.</p>';
   const foot='<button type="button" class="btn ghost" data-pairoff="1" style="flex:0 0 auto">Don\'t suggest</button><button type="button" class="btn primary" data-pairdone="1">Done</button>';
   I.setSheet({title:"Add some protein?", body, foot});
   const el=$("sheetBody");
-  el.onclick=e=>{ const b=e.target.closest("[data-pair]"); if (!b) return; const x=list[+b.dataset.pair]; ctx={date, meal}; portion(x.f, null, x.grams? {amount:x.grams, unit:"g"} : {amount:x.n}); };
+  el.onclick=e=>{ const b=e.target.closest("[data-pair]"); if (!b) return; const x=list[+b.dataset.pair]; ctx={date, meal}; portion(x.f, null, {amount:x.amt, unit:x.du}); };
   el.oninput=null; el.onsubmit=null;
   $("sheetFoot").onclick=e=>{
     const b=e.target.closest("button"); if (!b) return;
@@ -361,46 +422,69 @@ function pairingSheet(date, meal, added){
 
 function portion(food, edit, preset){
   if (!food) return;
-  let unit=preset && preset.unit==="g" && food.per100? "g" : "serving", amount=edit? edit.servings : preset && preset.amount>0? preset.amount : 1;
-  if (edit && edit.meal) ctx.meal=edit.meal;
   const units=amountUnits(food);
+  let unit=preset && preset.unit && units.some(u=>u.id===preset.unit)? preset.unit : defaultUnit(food);
+  const servings=edit? edit.servings : preset && preset.amount>0 && !preset.unit? preset.amount : 1;
+  let amount=preset && preset.unit===unit && preset.amount>0? preset.amount : niceAmount(unit, servings*unitOf(food, unit).per);
+  if (!(amount>0)) { unit="serving"; amount=servings; }
+  if (edit && edit.meal) ctx.meal=edit.meal;
   const fav=I.isFavorite(food);
   const draw=()=>{
     const n=computeFor(food, amount, unit);
     const grid=$("pgrid"); if (grid) grid.innerHTML=nutGrid(n);
+    const rd=$("pRead"); if (rd){
+      const sv=amount/unitOf(food, unit).per, g=servingGrams(food);
+      const bits=[amountText(food, unit, amount)];
+      if (unit!=="g" && unit!=="oz" && g) bits.push("about "+Math.round(sv*g)+(food.base==="ml"? " ml" : " g"));
+      if ((unit==="g" || unit==="oz") && servingVolTbsp(food.serving)) bits.push("about "+amountText(food, "cup", niceAmount("cup", sv*servingVolTbsp(food.serving)/16)));
+      rd.textContent=bits.join(" · ");
+    }
+    const ch=$("pChips"); if (ch) ch.querySelectorAll("[data-chip]").forEach(b=>b.setAttribute("aria-pressed", Math.abs(+b.dataset.chip-amount)<0.01));
   };
+  const chipsHTML=()=>{ const c=CHIPS[unit]; return c? c.map(v=>'<button type="button" data-chip="'+v+'">'+(unit==="oz"? v : U.frac(v))+'</button>').join("") : ""; };
   const body=
     '<div class="foodcard"><div><div class="nm">'+esc(food.name)+'</div><div class="br">'+esc([food.brand, food.serving? "Per "+food.serving : ""].filter(Boolean).join(" · "))+'</div></div><div id="pgrid"></div>'+
     (food.src==="photo"? '<p class="hint">Read from a photo by Claude. Double-check against the label.</p>' : "")+
     (food.src==="off"? '<p class="hint">From Open Food Facts, a crowd-sourced database. Check the label if something looks off.</p>' : "")+'</div>'+
-    '<div class="field"><span class="lbl">Amount</span><div class="stepper"><button type="button" class="iconbtn" data-step="-1" aria-label="Less">−</button>'+
-    '<input type="number" id="pAmt" inputmode="decimal" step="any" min="0" value="'+U.g1(amount)+'" aria-label="Amount">'+
+    '<div class="field"><span class="lbl">How much did you have?</span><div class="stepper"><button type="button" class="iconbtn" data-step="-1" aria-label="Less">−</button>'+
+    '<input type="number" id="pAmt" inputmode="decimal" step="any" min="0" value="'+fmtAmt(amount)+'" aria-label="Amount">'+
     '<button type="button" class="iconbtn" data-step="1" aria-label="More">'+icon("plus")+'</button>'+
-    (units.length>1? '<select id="pUnit" aria-label="Unit" style="flex:1">'+units.map(([v,l])=>'<option value="'+v+'">'+esc(l)+'</option>').join("")+'</select>' : '<span class="hint grow">'+esc(units[0][1])+'</span>')+
-    '</div></div>'+
-    (edit || CL.store.S.profile.pairing===false? "" : '<div id="psug">'+suggestHTML(food, ctx.date, ctx.meal)+'</div>')+
+    (units.length>1? '<select id="pUnit" aria-label="Unit" style="flex:1">'+units.map(u=>'<option value="'+u.id+'"'+(u.id===unit? " selected" : "")+'>'+esc(u.label)+'</option>').join("")+'</select>' : '<span class="hint grow">'+esc(units[0].label)+'</span>')+
+    '</div><div class="chips" id="pChips">'+chipsHTML()+'</div><p class="hint" id="pRead"></p></div>'+
+    (edit || CL.store.S.profile.pairing===false? "" : '<div id="psug"></div>')+
     mealPicker();
   const foot=(edit? '<button type="button" class="btn danger" data-p="delete">'+icon("trash")+'Remove</button><button type="button" class="btn primary" data-p="save">Save</button>'
     : '<button type="button" class="btn" data-p="fav" aria-pressed="'+fav+'" style="flex:0 0 auto">'+icon("star")+(fav? "Saved" : "Favorite")+'</button><button type="button" class="btn primary" data-p="add">Add to '+ctx.meal.toLowerCase()+'</button>');
   const el=I.openSheet({title:edit? "Edit entry" : "How much?", body, foot});
-  draw();
   const amt=$("pAmt");
-  if (unit==="g" && $("pUnit")){ $("pUnit").value="g"; amt.step="1"; }
+  const sug=()=>{ const p=$("psug"); if (p) p.innerHTML=suggestHTML(food, ctx.date, ctx.meal, unit); };
+  const setAmount=v=>{ amount=Math.max(0, v); amt.value=fmtAmt(amount); draw(); };
+  const setUnit=nu=>{
+    const sv=amount/unitOf(food, unit).per;
+    unit=nu; amt.step= unit==="g"? "1" : "any";
+    if ($("pUnit")) $("pUnit").value=unit;
+    $("pChips").innerHTML=chipsHTML();
+    setAmount(niceAmount(unit, sv*unitOf(food, unit).per)); sug();
+  };
+  draw(); sug();
   amt.oninput=()=>{ const v=U.num(amt.value); amount=Number.isFinite(v)&&v>=0? v : 0; draw(); };
   if ($("pUnit")) $("pUnit").onchange=e=>{
-    const nu=e.target.value;
-    if (nu==="g" && unit!=="g"){ amount=Math.round((food.servingG||100)*amount); }
-    else if (nu==="serving" && unit==="g"){ amount=Math.round(amount/(food.servingG||100)*4)/4 || 1; }
-    unit=nu; amt.value=U.g1(amount); amt.step = unit==="g"? "1" : "any"; draw();
+    setUnit(e.target.value);
+    if (e.target.value==="g" && !CL.store.S.profile.scale && !CL.store.S.profile.scaleAsked){
+      CL.store.S.profile.scaleAsked=true; CL.store.changed();
+      I.toast("Weighing food? Turn on Kitchen scale in Me → Settings to start in grams every time.");
+    }
   };
   el.onclick=e=>{
     const b=e.target.closest("button"); if (!b) return;
     if (b.dataset.step){
-      const st = unit==="g"? 10 : amount<1 || (amount===1 && +b.dataset.step<0)? 0.25 : 0.5;
-      amount=Math.max(0, Math.round((amount + st*(+b.dataset.step))*100)/100); amt.value=U.g1(amount); draw(); return;
+      const d=+b.dataset.step;
+      const st = unit==="g"? 10 : unit==="oz"? 0.5 : unit==="cup"? 0.25 : unit==="tbsp"? 1 : amount<1 || (amount===1 && d<0)? 0.25 : 0.5;
+      setAmount(Math.round((amount + st*d)*100)/100); return;
     }
-    if (b.dataset.sug){ if (unit==="g" && $("pUnit")){ unit="serving"; $("pUnit").value="serving"; amt.step="any"; } amount=+b.dataset.sug; amt.value=U.g1(amount); draw(); return; }
-    if (b.dataset.meal){ ctx.meal=b.dataset.meal; el.querySelectorAll("[data-meal]").forEach(x=>x.setAttribute("aria-pressed", x===b)); const add=document.querySelector('[data-p="add"]'); if (add) add.textContent="Add to "+ctx.meal.toLowerCase(); if ($("psug")) $("psug").innerHTML=suggestHTML(food, ctx.date, ctx.meal); return; }
+    if (b.dataset.chip){ setAmount(+b.dataset.chip); return; }
+    if (b.dataset.sug){ setAmount(niceAmount(unit, +b.dataset.sug*unitOf(food, unit).per)); return; }
+    if (b.dataset.meal){ ctx.meal=b.dataset.meal; el.querySelectorAll("[data-meal]").forEach(x=>x.setAttribute("aria-pressed", x===b)); const add=document.querySelector('[data-p="add"]'); if (add) add.textContent="Add to "+ctx.meal.toLowerCase(); sug(); return; }
   };
   $("sheetFoot").onclick=e=>{
     const b=e.target.closest("button"); if (!b) return;
@@ -409,9 +493,9 @@ function portion(food, edit, preset){
     if (p==="delete"){ I.closeSheet(); I.removeEntry(edit.date, edit.id); return; }
     if (!(amount>0)){ amt.focus(); return; }
     let f=food, s=amount;
-    if (unit==="g"){                     // log "150 g" as one serving of that size
-      const n=computeFor(food, amount, "g");
-      f=Object.assign({}, food, n, {serving:Math.round(amount)+" "+(food.base==="ml"? "ml" : "g"), servingG:amount}); s=1;
+    if (unit!=="serving"){              // log "¾ cup" or "150 g" as one serving of exactly that
+      const n=computeFor(food, amount, unit), g=servingGrams(food), sv=amount/unitOf(food, unit).per;
+      f=Object.assign({}, food, n, {serving:amountText(food, unit, amount), servingG: unit==="g"? amount : g? Math.round(sv*g) : null}); s=1;
     }
     if (p==="save"){
       const d=CL.store.day(edit.date), e2=d.entries.find(x=>x.id===edit.id);
@@ -425,7 +509,6 @@ function portion(food, edit, preset){
       I.toast("Added "+f.name+" · "+U.fmt(I.scaleFood(f,s).kcal)+" kcal", ()=>I.removeEntry(date, e.id));
     }
   };
-  setTimeout(()=>{ try { amt.focus({preventScroll:true}); amt.select(); } catch(e){} }, 260);
 }
 
 function editEntry(date, id){

@@ -13,7 +13,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - Quick add (just a calorie number).
   - Saved meals.
   - Copy yesterday, or copy a single meal.
-  - Log by servings or by grams.
+  - Log in the units you think in: cups (with ¼ ⅓ ½ ⅔ ¾ chips), tbsp, grams, oz or servings. Turn on **Kitchen scale** in Me → Settings to start in grams and get suggestions in grams.
 - **Daily targets without the guilt:**
   - Calorie and protein targets from your answers in **Me**.
   - A daily treat allowance.
