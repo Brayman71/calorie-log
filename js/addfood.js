@@ -110,6 +110,43 @@ function wireSearch(el){
   };
 }
 
+/* ---------- What fits? Foods and recipes that fit what's left today ---------- */
+const NOT_A_SNACK=/\b(oil|butter|beer|wine|cola|juice|coffee|soda)\b/i;
+function fitScore(f, left, pLeft){
+  const pd=f.protein*4/Math.max(f.kcal,1);                 // share of calories from protein
+  const fill=Math.min(f.kcal/Math.max(left,1), 1);           // uses the room without going over
+  const fib=(f.fiber||0)/Math.max(f.kcal,1)*12;
+  return pd*(pLeft>10? 3 : 1) + fill*0.6 + fib;
+}
+function whatFits(opts){
+  const date=(opts&&opts.date)||U.today();
+  ctx={date, meal:I.guessMeal()};
+  const S=CL.store.S, pr=S.profile, G=CL.math.goals(), T=CL.store.dayTotals(date);
+  const left=Math.round(G.goal-T.kcal), pLeft=Math.round((G.protein||0)-T.protein);
+  results=[];
+  const push=f=>{ results.push(f); return results.length-1; };
+  const room=Math.max(left, 150);                            // at or over target: show the lightest options
+  const ok=f=>f && f.kcal>=30 && f.kcal<=room && !NOT_A_SNACK.test(f.name);
+  const rank=list=>dedupe(list.filter(ok)).map(f=>[f, fitScore(f, room, pLeft)]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  const row=f=>'<li><button type="button" class="res" data-pick="'+push(f)+'"><div class="grow"><div class="nm">'+esc(f.name)+'</div><div class="sub">'+esc([f.brand, f.serving].filter(Boolean).join(" · "))+' · '+Math.round(f.protein)+' g protein</div></div><span class="kc num">'+U.fmt(f.kcal)+'</span></button></li>';
+  const group=(t, list)=>list.length? '<div class="group-t">'+t+'</div><ul class="results">'+list.map(row).join("")+'</ul>' : "";
+  const usual=rank([...(pr.favorites||[]), ...(pr.recents||[])]).slice(0,5);
+  const usualKeys=new Set(usual.map(I.foodKey));
+  const recipes=CL.RECIPES.map(r=>({name:r.name, serving:"1 serving", kcal:r.kcal, protein:r.protein, carbs:r.carbs, fat:r.fat, fiber:r.fiber, src:"recipe", meal:r.meal}));
+  const bites=rank([...CL.FOODS, ...recipes.filter(r=>r.meal==="snack")]).filter(f=>!usualKeys.has(I.foodKey(f))).slice(0,8);
+  const meals= left>=300? rank(recipes.filter(r=>r.meal!=="snack")).slice(0,5) : [];
+  const out= left>=350? rank(fastFoods()).slice(0,4) : [];
+  let head;
+  if (left<=0) head='<p class="notice">You\'re at your target for today. If you\'re truly hungry, these are the lightest, most filling picks. A little over is fine; the week evens it out.</p>';
+  else head='<div class="fitsum num"><div><b>'+U.fmt(left)+'</b><span>kcal left</span></div><div><b>'+(pLeft>0? pLeft+" g" : "Done")+'</b><span>Protein to go</span></div></div>'+
+    '<p class="hint">'+(pLeft>10? "Sorted by protein per calorie, since you still have protein to go." : "Protein's covered, so these are sorted by how filling they are for the calories.")+'</p>';
+  const body=head+group("Your usuals", usual)+group("Quick bites", bites)+group("Meals that fit", meals)+group("Eating out", out)+
+    (!usual.length && !bites.length? '<p class="hint">Nothing fits that small a gap. A glass of water or tea is a good bridge until your next meal.</p>' : "");
+  const el=I.openSheet({title:"What fits?", body});
+  el.onclick=e=>{ const b=e.target.closest("[data-pick]"); if (b) portion(results[+b.dataset.pick]); };
+  el.oninput=null; el.onsubmit=null;
+}
+
 /* ---------- Eating out ---------- */
 let eatChain=null;
 function eatingOut(){
@@ -420,5 +457,5 @@ function init(){
   document.addEventListener("visibilitychange", ()=>{ if (document.hidden && scanning) closeScanner(); });
 }
 
-CL.add={open, editEntry, portion, openScanner, closeScanner, init, createFood};
+CL.add={open, editEntry, portion, whatFits, openScanner, closeScanner, init, createFood};
 })();

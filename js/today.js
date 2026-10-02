@@ -113,7 +113,7 @@ function nudgeCard(date, G, T){
     if (!day.entries.length) rows.push('<li><div class="grow"><b>Nothing logged today</b><div class="hint">A rough log beats none. Quick add takes 5 seconds.</div></div><button type="button" class="btn small soft" data-add="Dinner">Log food</button></li>');
     else if (!has("Dinner")) rows.push('<li><div class="grow"><b>Log dinner</b><div class="hint">'+(G.goal-T.kcal>0? U.fmt(G.goal-T.kcal)+" kcal left for today" : "Close out the day")+'</div></div><button type="button" class="btn small soft" data-add="Dinner">'+icon("plus")+'Dinner</button></li>');
     const left=G.goal-T.kcal;
-    if (day.entries.length && has("Dinner") && left>150) rows.push('<li><div class="grow"><b>'+U.fmt(left)+' kcal left</b><div class="hint">Room for a snack if you\'re hungry. Under is fine too; it banks for the week.</div></div></li>');
+    if (day.entries.length && has("Dinner") && left>150) rows.push('<li><div class="grow"><b>'+U.fmt(left)+' kcal left</b><div class="hint">Room for a snack if you\'re hungry. Under is fine too; it banks for the week.</div></div><button type="button" class="btn small soft" data-fits="1">What fits?</button></li>');
   }
   if (!rows.length) return "";
   return '<section class="card nudge"><div class="cardhead"><h2>'+(part==="am"? icon("sun")+"Morning check-in" : icon("check")+"Evening check-in")+'</h2>'+
@@ -205,7 +205,8 @@ function render(){
   x+='<section class="card summary hero'+(over && !flexOver? " over" : "")+'"><div class="big'+(over && !flexOver? " over" : "")+'"><div><div class="v num">'+bigVal+'</div><div class="l">'+bigLbl+'</div></div>'+ring(T.kcal/G.goal, over && !flexOver)+'</div>'+
     '<div class="eq num"><div><b>'+U.fmt(G.goal)+'</b><span>Target</span></div><div><b>'+U.fmt(T.kcal)+'</b><span>Eaten</span></div><div><b>'+(over? "+"+U.fmt(-left) : U.fmt(left))+'</b><span>'+(over? "Over" : "Left")+'</span></div></div>'+
     '<div class="macros">'+macroCell("protein","Protein",T.protein,G.protein)+macroCell("carbs","Carbs",T.carbs,G.carbs)+macroCell("fat","Fat",T.fat,G.fat)+macroCell("fiber","Fiber",T.fiber,G.fiber)+'</div>'+
-    (G.flex? '<p class="flexnote">'+icon("gift")+'Includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+'</section>';
+    (G.flex? '<p class="flexnote">'+icon("gift")+'Includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+
+    (date===today && T.kcal>0? '<button type="button" class="fitcta" data-fits="1">'+icon("search")+(left>0? 'What fits in '+U.fmt(left)+' kcal?' : 'Still hungry? See the lightest picks')+icon("right")+'</button>' : "")+'</section>';
 
   // Same as yesterday?
   const yd=U.addDays(date,-1), ydN=CL.store.peekDay(yd).entries.length;
@@ -247,6 +248,7 @@ function onClick(ev){
   if (b.dataset.nscan){ CL.add.open({meal:b.dataset.nscan, date}); CL.add.openScanner(); return; }
   if (b.dataset.nudgex){ CL.store.S.profile.nudgeHide=U.today()+":"+b.dataset.nudgex; CL.store.changed(); return; }
   if (b.dataset.ms){ const pr=CL.store.S.profile, m=milestone(); if (b.dataset.ms==="goal" || b.dataset.ms==="half") pr.msSeen=[...(pr.msSeen||[]), b.dataset.ms]; pr.msLevel=Math.max(pr.msLevel||0, m? m.level : 0); CL.store.changed(); return; }
+  if (b.dataset.fits){ CL.add.whatFits({date}); return; }
   if (b.dataset.backup){ CL.me.backupNow(); return; }
   if (b.dataset.backupx){ CL.store.S.profile.backupSnooze=U.addDays(U.today(), 7); CL.store.changed(); return; }
   if (b.dataset.review){ CL.store.S.profile.reviewSeen=U.addDays(U.weekStart(U.today()), -7); CL.progress.resetWeek(); CL.store.changed(); CL.app.setTab("progress"); return; }

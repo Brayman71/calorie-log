@@ -10,6 +10,7 @@ const DEFAULTS = () => ({
   profile:{goalsMode:"plan", goal:2000, protein:125, carbs:225, fat:65, waterGoal:8, recents:[], favorites:[]},
   health:null,
   weights:[],          // [{date, kg}]
+  waist:[],            // [{date, cm}]
   days:{},             // date -> {entries:[], water:0}
   plans:{},            // weekStart -> plan
   myFoods:[],          // scanned, searched and custom foods

@@ -118,6 +118,21 @@ function reviewCard(){
     (R.notes.length? '<ul class="notes">'+R.notes.map(([k,t])=>'<li>'+PILL[k]+esc(t)+'</li>').join("")+'</ul>' : '<p class="hint" style="margin-top:10px">Nothing logged that week.</p>')+'</section>';
 }
 
+/* ---------- Waist: a non-scale win ---------- */
+function waistCard(){
+  const S=St.S, us=St.isUS(), u=us? "in" : "cm", list=(S.waist||[]).slice().sort((a,b)=>a.date<b.date? -1 : 1);
+  const disp=cm=>U.g1(us? cm/2.54 : cm);
+  const first=list[0], last=list[list.length-1], ch=first && last && last!==first? last.cm-first.cm : null;
+  const due=!last || U.addDays(last.date, 7)<=U.today();
+  let x='<section class="card"><div class="cardhead"><h2>Waist</h2><span class="hint">'+(last? (due? "Time for this week's" : "Next one "+U.shortDate(U.addDays(last.date,7))) : "Optional, once a week")+'</span></div>';
+  if (ch!=null) x+='<p style="margin-bottom:10px"><b class="num'+(ch<0? " good" : "")+'" style="font-size:22px">'+(Math.abs(ch)<0.1? "No change" : (ch<0? "−" : "+")+disp(Math.abs(ch))+" "+u)+'</b> <span class="hint">since '+esc(U.shortDate(first.date))+' ('+disp(first.cm)+' → '+disp(last.cm)+' '+u+')</span></p>';
+  else if (last) x+='<p class="hint" style="margin-bottom:10px">Started at <b>'+disp(last.cm)+' '+u+'</b> on '+esc(U.shortDate(last.date))+'. Measure again next week to see the change.</p>';
+  else x+='<p class="hint" style="margin-bottom:10px">When the scale stalls, your waist often keeps shrinking. Measure around your belly button, relaxed, not sucked in.</p>';
+  x+='<form class="row" id="waistForm" style="flex-wrap:nowrap"><input type="number" id="waistVal" inputmode="decimal" step="0.1" placeholder="Waist ('+u+')" aria-label="Waist in '+u+'" style="flex:1"><button class="btn'+(due? " primary" : "")+'" type="submit">Save</button></form>';
+  if (list.length) x+='<ul class="wlist" style="margin-top:8px">'+list.slice(-4).reverse().map(w=>'<li><span>'+esc(U.shortDate(w.date,{weekday:"short", month:"short", day:"numeric"}))+'</span><b class="num">'+disp(w.cm)+' '+u+'</b><button type="button" class="iconbtn ghost" data-waistdel="'+w.date+'" aria-label="Delete waist measurement from '+esc(U.shortDate(w.date))+'">'+icon("x")+'</button></li>').join("")+'</ul>';
+  return x+'</section>';
+}
+
 function render(){
   const el=$("screen-progress"), S=St.S, unit=St.wUnit(), p=CL.math.currentPlan(), G=CL.math.goals();
   const tr=CL.math.trend(S.weights), first=tr[0], last=tr[tr.length-1];
@@ -146,6 +161,7 @@ function render(){
   x+='<section class="card"><div class="cardhead"><h2>Weight</h2><span class="hint">'+tr.length+(tr.length===1? " weigh-in" : " weigh-ins")+'</span></div>'+weightChart(tr, goalKg)+
     '<div class="legend" style="margin-top:6px"><span><i style="background:var(--accent);height:3px"></i>Trend</span><span><i style="background:var(--muted);height:8px;width:8px;border-radius:50%"></i>Scale</span>'+(goalKg? '<span><i style="background:var(--accent);opacity:.6"></i>Goal</span>' : "")+'</div>'+
     '<p class="fine">Your weight can swing 1–4 '+unit+' a day from water, salt and food in your stomach. The trend line smooths that out, so trust it more than any single weigh-in.</p></section>';
+  x+=waistCard();
   x+='<section class="card"><div class="cardhead"><h2>Calories, last 4 weeks</h2></div>'+C.svg+
     '<p class="hint" style="margin-top:8px">'+(C.avg==null? "Log food to see your history." : "Average on logged days: <b>"+U.fmt(C.avg)+" kcal</b>"+(C.avg7!=null? " (last 7 days: "+U.fmt(C.avg7)+")" : "")+". You logged "+logged14+" of the last 14 days.")+'</p></section>';
   const list=S.weights.slice(-12).reverse();
@@ -154,6 +170,14 @@ function render(){
 }
 
 function onSubmit(e){
+  if (e.target.id==="waistForm"){
+    e.preventDefault();
+    const v=U.num($("waistVal").value), us=St.isUS(), cm=us? v*2.54 : v;
+    if (!(cm>=40 && cm<=250)){ $("waistVal").focus(); I.toast("Enter your waist in "+(us? "inches" : "cm")+"."); return; }
+    const S=St.S, t=U.today();
+    S.waist=(S.waist||[]).filter(w=>w.date!==t).concat([{date:t, cm:Math.round(cm*10)/10}]);
+    St.changed(); I.toast("Saved "+U.g1(v)+(us? " in" : " cm")); return;
+  }
   if (e.target.id!=="wForm") return;
   e.preventDefault();
   const v=U.num($("wVal").value), date=$("wDate").value||U.today();
@@ -167,6 +191,9 @@ function onSubmit(e){
 function onClick(e){
   const rw=e.target.closest("[data-rw]");
   if (rw){ const thisWk=U.weekStart(U.today()); const cur=reviewWk || U.addDays(thisWk,-7); const next=U.addDays(cur, +rw.dataset.rw); reviewWk = next>thisWk? thisWk : next; render(); return; }
+  const wd=e.target.closest("[data-waistdel]");
+  if (wd){ const S=St.S, gone=(S.waist||[]).find(w=>w.date===wd.dataset.waistdel); S.waist=S.waist.filter(w=>w!==gone); St.changed();
+    I.toast("Measurement deleted", ()=>{ S.waist=S.waist.concat([gone]); St.changed(); }); return; }
   const b=e.target.closest("[data-wdel]"); if (!b) return;
   const S=St.S, date=b.dataset.wdel, gone=S.weights.find(w=>w.date===date);
   S.weights=S.weights.filter(w=>w.date!==date); St.changed();

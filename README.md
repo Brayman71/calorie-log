@@ -32,6 +32,8 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - Adaptive burn estimate: after about 2 weeks of logging, the app corrects its estimate of your daily burn.
 - **Check-ins:** a morning card (weigh in, breakfast, water) and an evening card on Today, plus a weekly check-in on Progress with one thing to try next week.
 - **Eating out:** smart orders at 13 chains (Chick-fil-A, Chipotle, Subway, McDonald's, Starbucks, Taco Bell, Panera, Wendy's, Panda Express, Jersey Mike's, Sweetgreen, Dunkin', Five Guys) from their published nutrition info, one tap to log.
+- **What fits?:** tap it on Today to see foods, snacks, recipes and eating-out orders that fit the calories and protein you have left.
+- **Waist tracking:** an optional weekly measurement on Progress, for when the scale stalls.
 - **Milestones:** a celebration every 5 lb (or 2 kg) off your trend weight, at halfway, and at your goal.
 - **Backup reminder:** once you have a week of logs, a monthly nudge to save a copy to Files or iCloud Drive.
 - **Cook mode:** the screen stays on while a recipe is open.
