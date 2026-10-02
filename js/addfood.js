@@ -12,6 +12,10 @@ let photoMode=null;
 function recipeFoods(){
   return CL.RECIPES.map(r=>({name:r.name, serving:"1 serving", kcal:r.kcal, protein:r.protein, carbs:r.carbs, fat:r.fat, fiber:r.fiber, src:"recipe"}));
 }
+/* Smart fast food orders (js/fastfood.js) as loggable foods. */
+function fastFoods(){
+  return (CL.FASTFOOD||[]).flatMap(c=>c.orders.map(o=>({name:o.name, brand:c.chain, serving:"1 order", kcal:o.kcal, protein:o.protein, carbs:o.carbs, fat:o.fat, fiber:o.fiber==null? null : o.fiber, src:"fastfood"})));
+}
 function matches(f, words){ const t=(f.name+" "+(f.brand||"")).toLowerCase(); return words.every(w=>t.includes(w)); }
 function dedupe(list){ const seen=new Set(); return list.filter(f=>{ const k=I.foodKey(f); if (seen.has(k)) return false; seen.add(k); return true; }); }
 
@@ -42,9 +46,11 @@ function listHTML(q){
   const mine=dedupe([...(pr.favorites||[]), ...(pr.recents||[]), ...S.myFoods]).filter(f=>matches(f, words)).slice(0,15);
   const common=CL.FOODS.filter(f=>matches(f, words)).slice(0,10);
   const recipes=recipeFoods().filter(f=>matches(f, words)).slice(0,6);
+  const eatOut=fastFoods().filter(f=>matches(f, words)).slice(0,8);
   if (meals.length) x+='<div class="group-t">Saved meals</div><ul class="results">'+meals.map(([m,i])=>mealRow(m,i)).join("")+'</ul>';
   if (mine.length) x+='<div class="group-t">Your foods</div><ul class="results">'+mine.map(f=>resultRow(f, push(f))).join("")+'</ul>';
   if (common.length) x+='<div class="group-t">Common foods</div><ul class="results">'+common.map(f=>resultRow(f, push(f))).join("")+'</ul>';
+  if (eatOut.length) x+='<div class="group-t">Eating out</div><ul class="results">'+eatOut.map(f=>resultRow(f, push(f))).join("")+'</ul>';
   if (recipes.length) x+='<div class="group-t">Recipes</div><ul class="results">'+recipes.map(f=>resultRow(f, push(f), "Recipe")).join("")+'</ul>';
   // Online results (branded foods)
   if (onlineBusy && onlineQ===q) x+='<div class="loading"><span class="spinner"></span>Searching food databases…</div>';
@@ -52,7 +58,7 @@ function listHTML(q){
     x+='<div class="group-t">Online</div>'+(online.length? '<ul class="results">'+online.map(f=>resultRow(f, push(f), f.src==="usda"? "USDA" : "")).join("")+'</ul>' : '<p class="hint">No matches online. Try fewer words, scan the barcode, or create the food.</p>');
   } else if (onlineErr && onlineQ===q) x+='<p class="notice">'+esc(onlineErr)+'</p>';
   else x+='<button type="button" class="btn block" data-online="1">'+icon("search")+'Search online for “'+esc(q)+'”</button>';
-  if (!mine.length && !common.length && !recipes.length && !meals.length && !online) x='<p class="hint">Nothing saved matches “'+esc(q)+'”.</p>'+x;
+  if (!mine.length && !common.length && !recipes.length && !meals.length && !eatOut.length && !online) x='<p class="hint">Nothing saved matches “'+esc(q)+'”.</p>'+x;
   return x;
 }
 
@@ -77,6 +83,7 @@ function showSearch(q){
       '<button type="button" data-act="mealphoto">'+icon("sparkle")+'Meal photo</button>'+
     '</div>'+
     '<form class="searchbox" id="addSearch"><input type="search" id="addQ" placeholder="Search foods" value="'+esc(q)+'" autocomplete="off" enterkeyhint="search" aria-label="Search foods"></form>'+
+    ((CL.FASTFOOD||[]).length? '<button type="button" class="card bookcta eatcta" data-act="eatout">'+icon("cart")+'<span class="grow"><b>Eating out?</b><span class="hint">Smart orders at '+CL.FASTFOOD.length+' chains, from their official nutrition info</span></span>'+icon("right")+'</button>' : "")+
     '<div id="addList">'+listHTML(q)+'</div>'+
     '<button type="button" class="btn block" data-act="create">'+icon("pen")+'Create a food from its label</button>'+
     (key? "" : '<p class="fine">Label and meal photos use Claude. Add your Anthropic API key under Me → Settings to turn them on.</p>');
@@ -99,7 +106,37 @@ function wireSearch(el){
     else if (a==="quick") quickAdd();
     else if (a==="create") createFood({});
     else if (a==="label" || a==="mealphoto") startPhoto(a);
+    else if (a==="eatout") eatingOut();
   };
+}
+
+/* ---------- Eating out ---------- */
+let eatChain=null;
+function eatingOut(){
+  const chains=CL.FASTFOOD||[];
+  if (!eatChain || !chains.some(c=>c.chain===eatChain)) eatChain=chains[0] && chains[0].chain;
+  const draw=()=>{
+    const c=chains.find(x=>x.chain===eatChain);
+    I.setSheet({body:
+      '<div class="filters" role="group" aria-label="Restaurant">'+chains.map(x=>'<button type="button" data-chain="'+esc(x.chain)+'" aria-pressed="'+(x.chain===eatChain)+'">'+esc(x.chain)+'</button>').join("")+'</div>'+
+      (c? '<ul class="results">'+c.orders.map((o,i)=>'<li><button type="button" class="res" data-order="'+i+'"><div class="grow"><div class="nm">'+esc(o.name)+'</div><div class="sub">'+esc(o.parts||"")+'</div><div class="sub num">'+o.protein+' g protein · '+o.carbs+' g carbs · '+o.fat+' g fat</div></div><span class="kc num">'+U.fmt(o.kcal)+'</span></button></li>').join("")+'</ul>'+
+        (c.tip? '<p class="tip notice info"><b>Tip:</b> '+esc(c.tip)+'</p>' : "")+
+        '<p class="fine">From '+esc(c.chain)+'\'s published nutrition info'+(c.checked? " ("+esc(c.checked)+")" : "")+'. Menus and recipes change, so treat these as close estimates.</p>' : "")+
+      '<button type="button" class="btn block" data-eback="1">'+icon("left")+'Back to search</button>'});
+  };
+  const el=I.openSheet({title:"Eating out", body:""});
+  draw();
+  el.onclick=e=>{
+    const b=e.target.closest("button"); if (!b) return;
+    if (b.dataset.chain){ eatChain=b.dataset.chain; draw(); const p=$("sheetBody").querySelector('[aria-pressed="true"]'); if (p) p.scrollIntoView({inline:"center", block:"nearest"}); return; }
+    if (b.dataset.order){
+      const c=chains.find(x=>x.chain===eatChain), o=c.orders[+b.dataset.order];
+      portion({name:o.name, brand:c.chain, serving:"1 order", kcal:o.kcal, protein:o.protein, carbs:o.carbs, fat:o.fat, fiber:o.fiber==null? null : o.fiber, src:"fastfood"});
+      return;
+    }
+    if (b.dataset.eback){ showSearch(""); }
+  };
+  el.oninput=null; el.onsubmit=null;
 }
 
 async function searchOnline(q){

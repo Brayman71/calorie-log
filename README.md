@@ -31,6 +31,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - Calorie history and a forgiving streak.
   - Adaptive burn estimate: after about 2 weeks of logging, the app corrects its estimate of your daily burn.
 - **Check-ins:** a morning card (weigh in, breakfast, water) and an evening card on Today, plus a weekly check-in on Progress with one thing to try next week.
+- **Eating out:** smart orders at 13 chains (Chick-fil-A, Chipotle, Subway, McDonald's, Starbucks, Taco Bell, Panera, Wendy's, Panda Express, Jersey Mike's, Sweetgreen, Dunkin', Five Guys) from their published nutrition info, one tap to log.
 - **Water tracking.**
 - **Optional Claude features** (needs your own Anthropic API key, set in **Me → Settings**):
   - Custom-written weekly meal plans.
@@ -63,6 +64,7 @@ Then open http://localhost:8642. The camera needs either `localhost` or `https`.
 | `index.html`, `css/app.css` | Page shell and styles |
 | `js/plan-math.js` | Calorie target, macros and fiber, adaptive burn estimate, trend weight |
 | `js/recipes.js`, `js/recipes-popular.js`, `js/planner.js` | Recipe book (classic and popular recipes), week builder, grocery list |
+| `js/fastfood.js` | Eating-out orders by chain (checked Oct 2026) |
 | `js/scanner.js`, `js/foodapi.js` | Camera barcode reader, Open Food Facts / USDA lookups |
 | `js/claude.js` | Optional Claude features (Anthropic SDK, your own key) |
 | `js/store.js` | On-device storage, backup and restore |

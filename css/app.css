@@ -395,3 +395,7 @@ details.math li span{display:block;font-size:13px;color:var(--muted)}
 .pill.info{background:var(--sunk);color:var(--muted)}
 .btn[aria-pressed="true"] svg.i{fill:currentColor;color:var(--carbs)}
 .days button:disabled{opacity:.35}
+.eatcta{padding:12px 14px;box-shadow:none;border:1px solid var(--line)}
+.eatcta>svg.i:first-child{width:24px;height:24px;color:var(--td-ink)}
+.eatcta b{font-size:15px}
+.eatcta .hint{display:block;font-size:13px}
