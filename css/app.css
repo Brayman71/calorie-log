@@ -426,3 +426,8 @@ details.math li span{display:block;font-size:13px;color:var(--muted)}
 .res.static{cursor:default}
 .res.miss .nm{color:var(--muted)}
 .results.multi+.btn{margin-top:10px}
+
+/* Suggested amount */
+.suggest{display:flex;align-items:center;gap:10px;background:var(--accent-soft);border-radius:14px;padding:10px 12px;font-size:14px}
+.suggest>svg.i{flex:0 0 auto;color:var(--accent);width:20px;height:20px}
+.suggest .hint{font-size:13px}

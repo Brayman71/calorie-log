@@ -262,9 +262,86 @@ function nutGrid(n){
 }
 
 /* food: the thing being added (per one serving). edit: {date, id} when changing an existing entry. */
-function portion(food, edit){
+/* ---------- Recommended amounts ---------- */
+const MEAL_SHARE={Breakfast:0.25, Lunch:0.30, Dinner:0.35, Snacks:0.10};
+/* How much room this meal has: its share of the day, minus what's logged in it, never more than the day has left. */
+function mealBudget(date, meal){
+  const G=CL.math.goals(), T=CL.store.dayTotals(date), share=MEAL_SHARE[meal]||0.25;
+  const list=CL.store.peekDay(date).entries.filter(e=>e.meal===meal);
+  const used=list.reduce((a,e)=>a+(e.kcal||0),0), pUsed=list.reduce((a,e)=>a+(e.protein||0),0);
+  const kcal=Math.round(G.goal*share), dayLeft=G.goal-T.kcal;
+  return {kcal, used, left:Math.max(0, Math.min(kcal-used, dayLeft)), pTarget:Math.round((G.protein||0)*share), pUsed};
+}
+function roundServ(x, k){ return k<=60? Math.floor(x) : k<=150? Math.floor(x*4)/4 : Math.floor(x*2)/2; }
+/* A sensible amount of one food for the room left. Low-protein foods leave room for a protein partner. */
+function suggestAmount(food, B){
+  const k=food.kcal; if (!(k>0) || B.left<30) return null;
+  const pShare=(food.protein||0)*4/k;
+  const target=B.left*(pShare<0.2 && B.left>k*2.5? 0.4 : 0.9), pNeed=B.pTarget-B.pUsed;
+  let n= pShare>=0.3 && pNeed>=8? roundServ(Math.min(pNeed/food.protein, B.left/k, 3), k)    // protein foods: enough to reach the meal's protein
+    : Math.min(4, roundServ(target/k, k));
+  if (n<=0) n= k<=B.left? (k<=60? 1 : 0.5) : 0;
+  if (!n) return null;
+  return {amount:n, kcal:Math.round(k*n), protein:Math.round((food.protein||0)*n), partner:pShare<0.2 && B.left>k*2.5};
+}
+function suggestHTML(food, date, meal){
+  const B=mealBudget(date, meal), sg=suggestAmount(food, B), m=meal.toLowerCase();
+  if (!sg) return '<div class="suggest"><b>Your '+m+' budget is used up.</b> <span class="hint">That\'s okay. This just comes out of the rest of your day.</span></div>';
+  const w=(/^1\s+([a-z]+)\b/i.exec(food.serving||"")||[])[1], unitW=w && !/^(cup|oz|g|tbsp|tsp|serving|order|ml)$/i.test(w)? w.toLowerCase() : null;
+  const what= unitW? U.frac(sg.amount)+" "+(sg.amount>1 && !/s$/.test(unitW)? unitW+"s" : unitW) : sg.amount===1? "1 serving" : U.frac(sg.amount)+" servings";
+  return '<div class="suggest">'+icon("sparkle")+'<div class="grow"><b>Suggested: '+what+'</b> <span class="hint">('+U.fmt(sg.kcal)+' kcal, '+sg.protein+' g protein). '+
+    'Your '+m+' has '+U.fmt(B.left)+' of '+U.fmt(B.kcal)+' kcal left'+(sg.partner? ', so this leaves room to add some protein.' : '.')+'</span></div>'+
+    '<button type="button" class="btn small soft" data-sug="'+sg.amount+'">Use</button></div>';
+}
+
+/* After adding something, offer a protein partner sized to fill the rest of the meal. */
+const MEAL_FIT={
+  Breakfast:/egg|yogurt|cottage|protein|milk|turkey bacon|bacon|cheese|smoked salmon|peanut butter|kefir|ham/i,
+  Snacks:/yogurt|cottage|protein|cheese|jerky|egg|edamame|milk|tuna|turkey|string|kefir/i
+};
+function pairings(date, meal, added){
+  const B=mealBudget(date, meal), pNeed=B.pTarget-B.pUsed;
+  if (CL.store.S.profile.pairing===false || pNeed<8 || B.left<80) return [];
+  const since=U.addDays(date,-30), hist=new Map();
+  for (const d of Object.keys(CL.store.S.days)){ if (d<since) continue;
+    for (const e of CL.store.S.days[d].entries||[]) if (e.meal===meal && e.food){ const k=I.foodKey(e.food); const h=hist.get(k)||{f:e.food, n:0}; h.n++; hist.set(k,h); } }
+  const pr=CL.store.S.profile, re=MEAL_FIT[meal];
+  const mine=[...hist.values()].sort((a,b)=>b.n-a.n).map(h=>h.f);
+  const lib=[...(pr.favorites||[]), ...(pr.recents||[]), ...CL.FOODS].filter(f=>!re || re.test(f.name));
+  const skip=I.foodKey(added);
+  return dedupe([...mine, ...lib]).filter(f=>f.kcal>0 && (f.protein||0)*4/f.kcal>=0.3 && I.foodKey(f)!==skip && !NOT_A_SNACK.test(f.name))
+    .map(f=>{
+      let n=Math.min(pNeed/f.protein, B.left/f.kcal, 3); n=roundServ(n, f.kcal);
+      if (n<0.5 && f.kcal*0.5<=B.left) n=0.5;
+      if (n<0.5) return null;
+      const grams = f.per100 && f.servingG? Math.round(n*f.servingG/10)*10 : null;
+      return {f, n, grams, kcal:Math.round(f.kcal*n), protein:Math.round(f.protein*n), own:hist.has(I.foodKey(f))};
+    }).filter(Boolean).sort((a,b)=>(b.own-a.own) || (b.protein-a.protein)).slice(0,3).map(x=>Object.assign(x, {mealK:B.used+x.kcal, mealP:Math.round(B.pUsed+x.protein)}));
+}
+function pairingSheet(date, meal, added){
+  const list=pairings(date, meal, added);
+  if (!list.length) return false;
+  const B=mealBudget(date, meal), m=meal.toLowerCase();
+  const body='<p>Your '+m+' is at <b>'+U.fmt(B.used)+' kcal</b> and <b>'+Math.round(B.pUsed)+' g protein</b> so far. Add one of these to round it out:</p>'+
+    '<ul class="results">'+list.map((x,i)=>'<li><button type="button" class="res" data-pair="'+i+'"><div class="grow"><div class="nm">'+(x.grams? x.grams+" g " : x.n!==1? U.frac(x.n)+" × " : "")+esc(x.f.name)+(x.own? ' <span class="tag">Yours</span>' : "")+'</div>'+
+      '<div class="sub">+'+U.fmt(x.kcal)+' kcal, +'+x.protein+' g protein → '+m+' '+U.fmt(x.mealK)+' kcal · '+x.mealP+' g protein</div></div>'+icon("plus")+'</button></li>').join("")+'</ul>'+
+    '<p class="fine">Sized to fill your '+m+' budget ('+U.fmt(B.kcal)+' kcal) and get closer to about '+B.pTarget+' g protein for the meal. Tap one to adjust the amount.</p>';
+  const foot='<button type="button" class="btn ghost" data-pairoff="1" style="flex:0 0 auto">Don\'t suggest</button><button type="button" class="btn primary" data-pairdone="1">Done</button>';
+  I.setSheet({title:"Add some protein?", body, foot});
+  const el=$("sheetBody");
+  el.onclick=e=>{ const b=e.target.closest("[data-pair]"); if (!b) return; const x=list[+b.dataset.pair]; ctx={date, meal}; portion(x.f, null, x.grams? {amount:x.grams, unit:"g"} : {amount:x.n}); };
+  el.oninput=null; el.onsubmit=null;
+  $("sheetFoot").onclick=e=>{
+    const b=e.target.closest("button"); if (!b) return;
+    if (b.dataset.pairoff){ CL.store.S.profile.pairing=false; CL.store.changed(); I.closeSheet(); I.toast("Got it. You can turn suggestions back on in Me → Settings."); return; }
+    if (b.dataset.pairdone) I.closeSheet();
+  };
+  return true;
+}
+
+function portion(food, edit, preset){
   if (!food) return;
-  let unit="serving", amount=edit? edit.servings : 1;
+  let unit=preset && preset.unit==="g" && food.per100? "g" : "serving", amount=edit? edit.servings : preset && preset.amount>0? preset.amount : 1;
   if (edit && edit.meal) ctx.meal=edit.meal;
   const units=amountUnits(food);
   const fav=I.isFavorite(food);
@@ -281,12 +358,14 @@ function portion(food, edit){
     '<button type="button" class="iconbtn" data-step="1" aria-label="More">'+icon("plus")+'</button>'+
     (units.length>1? '<select id="pUnit" aria-label="Unit" style="flex:1">'+units.map(([v,l])=>'<option value="'+v+'">'+esc(l)+'</option>').join("")+'</select>' : '<span class="hint grow">'+esc(units[0][1])+'</span>')+
     '</div></div>'+
+    (edit || CL.store.S.profile.pairing===false? "" : '<div id="psug">'+suggestHTML(food, ctx.date, ctx.meal)+'</div>')+
     mealPicker();
   const foot=(edit? '<button type="button" class="btn danger" data-p="delete">'+icon("trash")+'Remove</button><button type="button" class="btn primary" data-p="save">Save</button>'
     : '<button type="button" class="btn" data-p="fav" aria-pressed="'+fav+'" style="flex:0 0 auto">'+icon("star")+(fav? "Saved" : "Favorite")+'</button><button type="button" class="btn primary" data-p="add">Add to '+ctx.meal.toLowerCase()+'</button>');
   const el=I.openSheet({title:edit? "Edit entry" : "How much?", body, foot});
   draw();
   const amt=$("pAmt");
+  if (unit==="g" && $("pUnit")){ $("pUnit").value="g"; amt.step="1"; }
   amt.oninput=()=>{ const v=U.num(amt.value); amount=Number.isFinite(v)&&v>=0? v : 0; draw(); };
   if ($("pUnit")) $("pUnit").onchange=e=>{
     const nu=e.target.value;
@@ -300,7 +379,8 @@ function portion(food, edit){
       const st = unit==="g"? 10 : amount<1 || (amount===1 && +b.dataset.step<0)? 0.25 : 0.5;
       amount=Math.max(0, Math.round((amount + st*(+b.dataset.step))*100)/100); amt.value=U.g1(amount); draw(); return;
     }
-    if (b.dataset.meal){ ctx.meal=b.dataset.meal; el.querySelectorAll("[data-meal]").forEach(x=>x.setAttribute("aria-pressed", x===b)); const add=document.querySelector('[data-p="add"]'); if (add) add.textContent="Add to "+ctx.meal.toLowerCase(); return; }
+    if (b.dataset.sug){ if (unit==="g" && $("pUnit")){ unit="serving"; $("pUnit").value="serving"; amt.step="any"; } amount=+b.dataset.sug; amt.value=U.g1(amount); draw(); return; }
+    if (b.dataset.meal){ ctx.meal=b.dataset.meal; el.querySelectorAll("[data-meal]").forEach(x=>x.setAttribute("aria-pressed", x===b)); const add=document.querySelector('[data-p="add"]'); if (add) add.textContent="Add to "+ctx.meal.toLowerCase(); if ($("psug")) $("psug").innerHTML=suggestHTML(food, ctx.date, ctx.meal); return; }
   };
   $("sheetFoot").onclick=e=>{
     const b=e.target.closest("button"); if (!b) return;
@@ -320,9 +400,9 @@ function portion(food, edit){
     }
     if (p==="add"){
       if (["off","usda","photo","custom"].includes(food.src)) I.saveMyFood(food);
-      I.addEntry(ctx.date, f, s, ctx.meal);
-      I.closeSheet();
-      I.toast("Added "+f.name+" · "+U.fmt(I.scaleFood(f,s).kcal)+" kcal");
+      const e=I.addEntry(ctx.date, f, s, ctx.meal), date=ctx.date;
+      if (!pairingSheet(ctx.date, ctx.meal, food)) I.closeSheet();
+      I.toast("Added "+f.name+" · "+U.fmt(I.scaleFood(f,s).kcal)+" kcal", ()=>I.removeEntry(date, e.id));
     }
   };
   setTimeout(()=>{ try { amt.focus({preventScroll:true}); amt.select(); } catch(e){} }, 260);
@@ -516,5 +596,5 @@ function init(){
   document.addEventListener("visibilitychange", ()=>{ if (document.hidden && scanning) closeScanner(); });
 }
 
-CL.add={open, editEntry, portion, whatFits, openScanner, closeScanner, init, createFood};
+CL.add={open, editEntry, portion, whatFits, mealBudget, openScanner, closeScanner, init, createFood};
 })();
