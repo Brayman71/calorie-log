@@ -1,0 +1,180 @@
+/* Today screen: calories left, macros, weekly budget, water, today's planned meals and the food log. */
+window.CL = window.CL || {};
+(function(){
+const U=CL.util, I=CL.ui;
+const {$, icon, esc}={$:CL.ui.$, icon:CL.ui.icon, esc:U.esc};
+
+function ring(frac, over){
+  const r=36, c=2*Math.PI*r, f=Math.max(0, Math.min(1, frac));
+  return '<svg class="ring'+(over? " over" : "")+'" viewBox="0 0 84 84" aria-hidden="true"><circle class="bgc" cx="42" cy="42" r="'+r+'"/>'+
+    '<circle class="fg" cx="42" cy="42" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-f)).toFixed(1)+'" transform="rotate(-90 42 42)"/></svg>';
+}
+
+function macroCell(key, label, val, goal){
+  const pct=goal? Math.min(100, val/goal*100) : 0;
+  return '<div class="mac" data-m="'+key+'"><span class="t">'+label+'</span><span class="n num">'+Math.round(val)+(goal? '<small> / '+goal+'g</small>' : '<small>g</small>')+'</span><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div></div>';
+}
+
+/* Weekly budget: unspent calories from earlier days carry forward; extra ones spread out gently. */
+function weekInfo(date, G){
+  const wk=U.weekStart(date), today=U.today(), out={days:[], wk};
+  let banked=0, eaten=0, loggedPast=0;
+  for (let i=0;i<7;i++){
+    const d=U.addDays(wk,i), t=CL.store.dayTotals(d).kcal, logged=CL.store.peekDay(d).entries.length>0;
+    out.days.push({d, t, logged, future:d>today});
+    if (d<today && logged){ banked+=G.goal-t; loggedPast++; }
+    if (d<=today) eaten+=t;
+  }
+  const inWeek = today>=wk && today<=U.addDays(wk,6);
+  out.inWeek=inWeek; out.eaten=eaten; out.loggedPast=loggedPast;
+  if (inWeek){
+    const left=7-U.dayIdx(today);
+    out.perDay=Math.round(G.goal + banked/left);
+    out.banked=banked; out.left=left;
+  }
+  return out;
+}
+
+function weekCard(date, G){
+  const W=weekInfo(date, G), max=Math.max(G.goal*1.35, ...W.days.map(x=>x.t));
+  const bars=W.days.map((x,i)=>{
+    const h=Math.min(100, x.t/max*100), gl=100-G.goal/max*100, over=x.t>G.goal*1.1;
+    return '<button type="button" class="d'+(x.d===date? " sel" : "")+(x.future? " future" : "")+'" data-go="'+x.d+'" aria-label="'+esc(U.shortDate(x.d,{weekday:"long"}))+': '+U.fmt(x.t)+' kcal">'+
+      '<span class="col'+(over? " over" : "")+'"><i style="height:'+h.toFixed(1)+'%"></i><span class="gl" style="top:'+gl.toFixed(1)+'%"></span></span>'+
+      '<span class="dn">'+CL.planner.DAYN[i].slice(0,2)+'</span></button>';
+  }).join("");
+  let msg="";
+  if (W.inWeek && W.loggedPast){
+    if (W.banked>=0) msg='You\'ve banked <b>'+U.fmt(W.banked)+' kcal</b> this week, so you have about <b>'+U.fmt(W.perDay)+'</b> a day for the rest of it.';
+    else {
+      const soft=Math.max(W.perDay, Math.round(G.goal*0.9));
+      msg='You\'re <b>'+U.fmt(-W.banked)+' kcal</b> over for the week so far. Aiming for about <b>'+U.fmt(soft)+'</b> a day evens it out'+(soft>W.perDay? " most of the way. No need to make it all up; one big day doesn't undo your progress." : ".");
+    }
+  } else if (W.inWeek) msg="Days under your target bank calories for later in the week, so a big dinner on Saturday is fine.";
+  else {
+    const logged=W.days.filter(x=>x.logged);
+    msg = logged.length? "Averaged "+U.fmt(logged.reduce((a,x)=>a+x.t,0)/logged.length)+" kcal on "+logged.length+" logged "+(logged.length===1? "day" : "days")+"." : "Nothing logged this week.";
+  }
+  return '<section class="card"><div class="cardhead"><h2>This week</h2><span class="hint num">'+U.fmt(W.eaten)+' / '+U.fmt(G.goal*7)+' kcal</span></div>'+
+    '<div class="weekbars">'+bars+'</div><p class="hint" style="margin-top:10px">'+msg+'</p></section>';
+}
+
+function waterCard(date){
+  const S=CL.store.S, n=CL.store.peekDay(date).water||0, goal=S.profile.waterGoal||8;
+  const metric=!CL.store.isUS(), unit=metric? "250 ml" : "8 oz";
+  let glasses="";
+  for (let i=0;i<Math.max(goal, n);i++){
+    glasses+='<button type="button" class="glass'+(i<n? " on" : "")+'" data-water="'+(i+1)+'" aria-label="'+(i+1)+(i===0? " glass" : " glasses")+'">'+
+      '<svg viewBox="0 0 30 38"><path class="fill" d="M6 14h18l-2.2 19a2 2 0 0 1-2 1.8H10.2a2 2 0 0 1-2-1.8z"/><path class="outline" d="M3 4h24l-3 29.2a2.2 2.2 0 0 1-2.2 2H8.2a2.2 2.2 0 0 1-2.2-2z"/></svg></button>';
+  }
+  return '<section class="card"><div class="cardhead"><h2>Water</h2><span class="hint">'+n+' of '+goal+' glasses ('+unit+')</span></div>'+
+    '<div class="water">'+glasses+'<button type="button" class="iconbtn" data-water="+1" aria-label="Add a glass">'+icon("plus")+'</button></div></section>';
+}
+
+function plannedCard(date){
+  const plan=CL.store.S.plans[U.weekStart(date)];
+  if (!plan) return "";
+  const di=U.dayIdx(date), day=(plan.days||[])[di]; if (!day) return "";
+  const entries=CL.store.peekDay(date).entries;
+  const rows=CL.planner.SLOT_KEYS.map(slot=>{
+    const r=CL.planner.recipeById(plan, day[slot]); if (!r) return "";
+    const done=entries.some(e=>e.plan===date+":"+slot);
+    return '<li><div class="grow"><div class="slot">'+I.SLOT_MEAL[slot]+'</div><div style="font-weight:600;line-height:1.25">'+esc(r.name)+'</div><div class="hint num">'+U.fmt(CL.planner.slotKcal(plan, r))+' kcal</div></div>'+
+      (done? '<span class="done">'+icon("check")+'Logged</span>' : '<button type="button" class="btn small soft" data-logplan="'+slot+'">Ate it</button>')+'</li>';
+  }).join("");
+  if (!rows) return "";
+  return '<section class="card"><div class="cardhead"><h2>On your plan</h2><button type="button" class="linkbtn" data-tabgo="plan">See recipes</button></div><ul class="planned">'+rows+'</ul></section>';
+}
+
+function mealCard(date, meal){
+  const list=CL.store.peekDay(date).entries.filter(e=>e.meal===meal);
+  const kcal=list.reduce((a,e)=>a+(e.kcal||0),0);
+  const rows=list.map(e=>'<li><button type="button" class="entry" data-entry="'+e.id+'"><div class="grow"><div class="nm">'+esc(e.name)+'</div><div class="sub">'+
+    esc((e.servings!==1? U.frac(e.servings)+" × " : "")+(e.serving||"serving"))+' · '+I.macroText(e)+'</div></div><span class="kc num">'+U.fmt(e.kcal)+'</span></button></li>').join("");
+  return '<section class="card meal"><div class="mh"><h2>'+meal+(list.length? '<span class="k num">'+U.fmt(kcal)+' kcal</span>' : "")+'</h2>'+
+    '<div class="row" style="gap:2px"><button type="button" class="iconbtn ghost" data-mealmenu="'+meal+'" aria-label="'+meal+' options">'+icon("dots")+'</button>'+
+    '<button type="button" class="iconbtn ghost" data-add="'+meal+'" aria-label="Add to '+meal+'">'+icon("plus")+'</button></div></div>'+
+    (rows? '<ul class="entries">'+rows+'</ul>' : '<p class="empty">Nothing yet.</p>')+'</section>';
+}
+
+function render(){
+  const el=$("screen-today"), st=CL.state, date=st.date, today=U.today();
+  const T=CL.store.dayTotals(date), G=CL.math.goals();
+  const left=G.goal-T.kcal, over=left<0, flexOver=over && -left<=G.goal*0.1;   // a little over is just a normal day
+  const title= date===today? "Today" : date===U.addDays(today,-1)? "Yesterday" : U.shortDate(date,{weekday:"short", month:"short", day:"numeric"});
+  const sk=I.streak();
+  let x='<header class="screenhead"><div class="daynav"><button type="button" class="iconbtn" data-day="-1" aria-label="Previous day">'+icon("left")+'</button>'+
+    '<button type="button" class="date" data-go="'+today+'" aria-label="Go to today">'+esc(title)+'</button>'+
+    '<button type="button" class="iconbtn" data-day="1" aria-label="Next day"'+(date>=today? " disabled" : "")+'>'+icon("right")+'</button></div>'+
+    (sk>=2? '<span class="chip good" title="Days logged in a row. One missed day a week doesn\'t break it.">'+icon("flame")+sk+'-day streak</span>' : "")+'</header>';
+
+  if (!CL.store.S.health){
+    x+='<section class="card banner"><div class="grow"><b>Set up your plan</b><p>Answer a few questions and the app works out a calorie target that doesn\'t feel like a punishment.</p></div><button type="button" class="btn primary small" data-tabgo="me">Start</button></section>';
+  }
+
+  // Calories left
+  let bigVal, bigLbl;
+  if (!over){ bigVal=U.fmt(left); bigLbl="kcal left"; }
+  else if (flexOver){ bigVal=U.fmt(-left); bigLbl="kcal over. Totally fine."; }
+  else { bigVal=U.fmt(-left); bigLbl="kcal over today. The week evens it out."; }
+  x+='<section class="card summary"><div class="big'+(over && !flexOver? " over" : "")+'"><div><div class="v num">'+bigVal+'</div><div class="l">'+bigLbl+'</div></div>'+ring(T.kcal/G.goal, over && !flexOver)+'</div>'+
+    '<div class="eq num"><div><b>'+U.fmt(G.goal)+'</b><span>Target</span></div><div><b>'+U.fmt(T.kcal)+'</b><span>Eaten</span></div><div><b>'+(over? "+"+U.fmt(-left) : U.fmt(left))+'</b><span>'+(over? "Over" : "Left")+'</span></div></div>'+
+    '<div class="macros">'+macroCell("protein","Protein",T.protein,G.protein)+macroCell("carbs","Carbs",T.carbs,G.carbs)+macroCell("fat","Fat",T.fat,G.fat)+macroCell("fiber","Fiber",T.fiber,G.fiber)+'</div>'+
+    (G.flex? '<p class="flexnote">Your target includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+'</section>';
+
+  // Same as yesterday?
+  const yd=U.addDays(date,-1), ydN=CL.store.peekDay(yd).entries.length;
+  if (!CL.store.peekDay(date).entries.length && ydN){
+    x+='<section class="card banner"><div class="grow"><b>Same as yesterday?</b><p>Copy all '+ydN+' items from '+(date===today? "yesterday" : U.shortDate(yd))+', then remove what you didn\'t have.</p></div><button type="button" class="btn small" data-copyday="1">'+icon("copy")+'Copy</button></section>';
+  }
+
+  x+=plannedCard(date);
+  x+=I.MEALS.map(m=>mealCard(date, m)).join("");
+  x+=waterCard(date);
+  x+=weekCard(date, G);
+  el.innerHTML=x;
+}
+
+/* Clicks on the Today screen */
+function onClick(ev){
+  const b=ev.target.closest("button"); if (!b) return;
+  const st=CL.state, date=st.date;
+  if (b.dataset.day){ const d=U.addDays(date, +b.dataset.day); if (d<=U.today()){ st.date=d; render(); } return; }
+  if (b.dataset.go){ st.date=b.dataset.go>U.today()? U.today() : b.dataset.go; render(); return; }
+  if (b.dataset.add){ CL.add.open({meal:b.dataset.add, date}); return; }
+  if (b.dataset.entry){ CL.add.editEntry(date, b.dataset.entry); return; }
+  if (b.dataset.mealmenu){ mealMenu(date, b.dataset.mealmenu); return; }
+  if (b.dataset.copyday){ I.copyEntries(U.addDays(date,-1), date); return; }
+  if (b.dataset.tabgo){ CL.app.setTab(b.dataset.tabgo); return; }
+  if (b.dataset.logplan){ CL.planUI.logSlot(date, b.dataset.logplan); return; }
+  if (b.dataset.water){
+    const d=CL.store.day(date), v=b.dataset.water;
+    if (v==="+1") d.water=(d.water||0)+1;
+    else { const n=+v; d.water = d.water===n? n-1 : n; }
+    CL.store.pruneEmptyDay(date); CL.store.changed(); return;
+  }
+}
+
+function mealMenu(date, meal){
+  const items=CL.store.peekDay(date).entries.filter(e=>e.meal===meal);
+  const yd=U.addDays(date,-1), ydItems=CL.store.peekDay(yd).entries.filter(e=>e.meal===meal);
+  const body=
+    '<button type="button" class="btn block" data-mm="copy"'+(ydItems.length? "" : " disabled")+'>'+icon("copy")+'Copy '+meal.toLowerCase()+' from yesterday'+(ydItems.length? " ("+ydItems.length+")" : "")+'</button>'+
+    '<button type="button" class="btn block" data-mm="save"'+(items.length? "" : " disabled")+'>'+icon("star")+'Save this '+meal.toLowerCase()+' as a meal</button>'+
+    '<p class="hint">Saved meals show up when you tap + so you can log them again in one tap.</p>';
+  const el=I.openSheet({title:meal, body});
+  el.onclick=e=>{
+    const b=e.target.closest("[data-mm]"); if (!b) return;
+    if (b.dataset.mm==="copy"){ I.closeSheet(); I.copyEntries(yd, date, meal); }
+    if (b.dataset.mm==="save"){
+      const name=prompt("Name this meal", meal+" usual");
+      if (!name) return;
+      const S=CL.store.S;
+      S.meals=[{id:U.uid(), name:name.trim().slice(0,60), items:items.map(e=>({name:e.name, brand:e.brand||"", serving:e.serving, servings:e.servings, kcal:e.kcal, protein:e.protein, carbs:e.carbs, fat:e.fat, fiber:e.fiber==null? null : e.fiber, food:e.food||null}))}, ...S.meals].slice(0,60);
+      CL.store.changed(); I.closeSheet(); I.toast("Saved "+name.trim());
+    }
+  };
+}
+
+CL.today={render, onClick, weekInfo};
+})();
