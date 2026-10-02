@@ -1,6 +1,6 @@
 /* Offline support. The app itself is cached on install; the barcode reader, fonts and Claude SDK
    (loaded from CDNs) are cached the first time they're used. Food and Claude API calls are never cached. */
-const VERSION="calorie-log-v8";
+const VERSION="calorie-log-v9";
 const SHELL=[
   "./", "index.html", "manifest.webmanifest", "css/app.css",
   "js/util.js","js/store.js","js/foods.js","js/fastfood.js","js/recipes.js","js/recipes-popular.js","js/plan-math.js","js/planner.js","js/foodapi.js","js/scanner.js","js/claude.js",

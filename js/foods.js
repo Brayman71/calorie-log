@@ -30,5 +30,8 @@ CL.FOODS = [
   ["Coffee, black","1 cup",2,0.3,0,0],["Latte, 2% milk","16 oz",190,13,19,7],
   ["Orange juice","1 cup",112,1.7,26,0.5],["Cola","12 oz can",140,0,39,0],
   ["Beer, regular","12 oz",153,1.6,13,0],["Red wine","5 oz glass",125,0.1,3.8,0],
-  ["Granola","½ cup",300,7,32,15],["Turkey sandwich","1 sandwich",320,22,34,10]
+  ["Granola","½ cup",300,7,32,15],["Rice cake, plain","1 cake (9 g)",35,0.7,7.3,0.3],["Honey","1 tbsp",64,0.1,17.3,0],
+  ["Mixed berries","1 cup",70,1,17,0.5],["Raspberries","1 cup",64,1.5,14.7,0.8],["Maple syrup","1 tbsp",52,0,13.4,0],
+  ["Strawberry jam","1 tbsp",56,0.1,13.8,0],["Chia seeds","1 tbsp",58,2,5,3.7],["Hummus","2 tbsp",70,2,4,5],
+  ["Cream cheese","1 tbsp",50,0.9,0.8,5],["Almond butter","2 tbsp",196,6.8,6,17.8],["Turkey sandwich","1 sandwich",320,22,34,10]
 ].map(([name,serving,kcal,protein,carbs,fat])=>({name,serving,kcal,protein,carbs,fat,src:"lib"}));

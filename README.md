@@ -8,7 +8,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
 - **Fast logging:**
   - Search your own foods, 60 common foods, the recipe book, and both online databases.
   - Recent foods and favorites.
-  - Type several foods at once, like "2 eggs, toast, coffee", and add them in one tap.
+  - Type several foods at once, like "2 eggs, toast, coffee", and add them in one tap. Everyday amounts work too: "a layer of yogurt", "a handful of berries", "a drizzle of honey", "a smear of peanut butter".
   - Suggested amounts: each meal gets a share of your day (breakfast 25%, lunch 30%, dinner 35%, snacks 10%), and the amount screen suggests how much fits, like "4 cakes". After you add a low-protein food, it offers a protein partner sized to fill the meal, starting with foods you have eaten at that meal before. Turn off in Me → Settings.
   - Quick add (just a calorie number).
   - Saved meals.
@@ -45,7 +45,7 @@ A calm calorie tracker for iPhone, built as a web app you add to your home scree
   - Custom-written weekly meal plans.
   - Recipe swaps.
   - Reading nutrition labels from a photo.
-  - Estimating a plated meal from a photo.
+  - Estimating a plated meal from a photo (from the camera or your photo library). Add a short description for better accuracy; it uses the label numbers of foods you have already logged.
 - **Works offline and stays on your phone.** There's no account and no server. Use **Me → Settings → Backup** to move your data or keep a copy.
 
 ## Install on iPhone

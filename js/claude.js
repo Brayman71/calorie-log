@@ -225,11 +225,14 @@ const MEAL_SCHEMA={type:"object", additionalProperties:false, required:["name","
   properties:{name:{type:"string"}, note:{type:"string"},
     items:{type:"array", items:{type:"object", additionalProperties:false, required:["name","portion","kcal","protein","carbs","fat"],
       properties:{name:{type:"string"}, portion:{type:"string"}, kcal:{type:"number"}, protein:{type:"number"}, carbs:{type:"number"}, fat:{type:"number"}}}}}};
-async function estimateMeal(file, description){
+async function estimateMeal(file, description, ownFoods){
   const b64=await fileToJpeg(file, 1280);
+  const own=(ownFoods||[]).slice(0,30).map(f=>"- "+f.name+(f.brand? " ("+f.brand+")" : "")+": per "+(f.serving||"serving")+" "+Math.round(f.kcal)+" kcal, "+U.g1(f.protein||0)+" g protein, "+U.g1(f.carbs||0)+" g carbs, "+U.g1(f.fat||0)+" g fat").join("\n");
   const text="Estimate the calories and macros in this meal photo. List each food you can see with a realistic portion (cups, ounces or pieces). "+
     "Count cooking oil, butter, dressings and sauces you can reasonably expect, because photo estimates usually miss them. "+
-    (description? "The person says: \""+description.slice(0,200)+"\". " : "")+
+    (description? "The person says: \""+description.slice(0,300)+"\". Trust their description for what the foods are and how many; use the photo for portion sizes. " : "")+
+    (own? "Foods this person logs often. When an item matches one of these, use these label numbers scaled to the portion you see:\n"+own+"\n" : "")+
+    "For toppings and spreads (yogurt layers, honey drizzles, nut butter, sauces), estimate the amount in teaspoons or tablespoons from what you see. "+
     "name: a short name for the whole meal. note: one short sentence about what's most uncertain (e.g. hidden oil, portion size).";
   const d=await askJSON({content:[imageBlock(b64), {type:"text", text}], schema:MEAL_SCHEMA, effort:"low", maxTokens:5000});
   const items=(d.items||[]).slice(0,12).map(i=>({name:U.str(i.name,60), portion:U.str(i.portion,40), kcal:Math.round(i.kcal||0), protein:Math.round(i.protein||0), carbs:Math.round(i.carbs||0), fat:Math.round(i.fat||0)}));

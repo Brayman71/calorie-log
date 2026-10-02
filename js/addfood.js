@@ -24,6 +24,20 @@ const QTY_WORDS={a:1, an:1, one:1, two:2, three:3, four:4, five:5, six:6, half:0
 const SKIP_WORDS=new Set(["of","cup","cups","slice","slices","piece","pieces","tbsp","tsp","oz","scoop","scoops","serving","servings","bowl","glass","small","medium","large","some","with"]);
 const SYNONYMS={toast:"bread", oj:"orange juice", pb:"peanut butter", shake:"protein shake", fries:"french fries", coke:"cola", yoghurt:"yogurt"};
 let multi=[];
+/* "a drizzle of honey", "a layer of yogurt": everyday amounts, in tablespoons */
+const PORTION_WORDS={drizzle:0.33, drizzled:0.33, pat:0.33, splash:1, sprinkle:1, sprinkled:1, spoonful:1, spoon:1, smear:1, dollop:2, spread:1.5, layer:4, handful:8, scoop:null};
+function servingTbsp(serving){
+  const m=String(serving||"").toLowerCase().match(/(\d+(?:\.\d+)?|½|¼|⅓|¾)?\s*(cups?|tbsp|tsp|oz|g|ml)\b/);
+  if (!m) return null;
+  const n=m[1]==null? 1 : ({"½":0.5,"¼":0.25,"⅓":0.33,"¾":0.75})[m[1]] || +m[1];
+  const per={cup:16, cups:16, tbsp:1, tsp:1/3, oz:2, g:1/15, ml:1/15}[m[2]];
+  return n*per || null;
+}
+function volText(tbsp){
+  if (tbsp<1) return Math.max(1, Math.round(tbsp*3))+" tsp";
+  if (tbsp<4) return U.frac(Math.round(tbsp*2)/2)+" tbsp";
+  return U.frac(Math.round(tbsp/16*4)/4)+" cup";
+}
 function norm(w){ return w.toLowerCase().replace(/[^a-z0-9½¼]/g,"").replace(/ies$/,"y").replace(/([^s])s$/,"$1"); }
 function splitItems(q){
   const parts=q.split(/\s*(?:,|\+|;|\band\b|\n)\s*/i).map(t=>t.trim()).filter(Boolean);
@@ -34,9 +48,10 @@ function parseItem(text){
   const m=t.match(/^(\d+\/\d+|\d+(?:\.\d+)?|½|¼|a|an|one|two|three|four|five|six|half)(?=\s|$)\s*(?:a\s+|an\s+)?/);
   if (m){ const v=m[1]; qty= QTY_WORDS[v]!=null? QTY_WORDS[v] : v.includes("/")? (+v.split("/")[0])/(+v.split("/")[1]) : +v; t=t.slice(m[0].length); }
   const x=t.match(/\s*x\s*(\d+(?:\.\d+)?)$/); if (x){ qty*=+x[1]; t=t.slice(0, x.index); }
-  let words=t.split(/\s+/).filter(w=>w && !SKIP_WORDS.has(w));
+  let vol=null, pword=null;
+  let words=t.split(/\s+/).filter(w=>{ const k=w.replace(/[^a-z]/g,""); if (k in PORTION_WORDS){ pword=k.replace(/ed$/,""); vol=PORTION_WORDS[k]; return false; } return true; }).filter(w=>w && !SKIP_WORDS.has(w));
   words=words.flatMap(w=>(SYNONYMS[w]||w).split(" ")).map(norm).filter(Boolean);
-  return {text, qty:qty>0 && qty<50? qty : 1, words};
+  return {text, qty:qty>0 && qty<50? qty : 1, words, vol, pword};
 }
 function bestFood(words, pool){
   if (!words.length) return null;
@@ -58,7 +73,12 @@ function multiHTML(q){
   multi=items.map(t=>{
     const p=parseItem(t), food=bestFood(p.words, pool);
     if (food && /^½\s/.test(food.serving||"")) p.qty*=2;      // "½ avocado" when the serving is already half of one
-    return Object.assign(p, {food});
+    let use=food;
+    if (food && p.vol){                                       // "a drizzle of honey" → about 1 tsp of a 1 tbsp serving
+      const st=servingTbsp(food.serving);
+      if (st){ const tb=p.vol*p.qty, k=tb/st; use=Object.assign({}, food, I.scaleFood(food, k), {serving:p.pword+" (about "+volText(tb)+")", per100:null, servingG:null}); p.qty=1; }
+    }
+    return Object.assign(p, {food:use});
   });
   const found=multi.filter(m=>m.food), kcal=found.reduce((a,m)=>a+I.scaleFood(m.food, m.qty).kcal,0);
   return '<div class="group-t">Log them all</div><ul class="results multi">'+multi.map(m=>m.food
@@ -547,7 +567,21 @@ function startPhoto(kind){
     return;
   }
   photoMode=kind;
+  if (kind==="mealphoto"){
+    const el=I.openSheet({title:"Meal photo", body:'<p class="hint">Take a photo of the plate or bowl, from a little above. Claude lists each food with an amount, and you can fix anything before it\'s logged. About 1–3 cents a photo.</p>'+
+      '<div class="field"><label for="mpDesc">What\'s in it? (optional, but much more accurate)</label><textarea id="mpDesc" rows="2" maxlength="300" placeholder="e.g. 2 rice cakes, Chobani plain yogurt, blueberries, honey"></textarea></div>'+
+      '<button type="button" class="btn primary block" id="mpGo">'+icon("camera")+'Take or choose a photo</button><button type="button" class="btn block" id="goBack">Back</button>'});
+    $("mpGo").onclick=()=>{ photoDesc=$("mpDesc").value.trim(); const inp=$("photoInput"); inp.value=""; inp.click(); };
+    $("goBack").onclick=()=>showSearch("");
+    el.oninput=null; el.onsubmit=null; el.onclick=null;
+    return;
+  }
   const inp=$("photoInput"); inp.value=""; inp.click();
+}
+let photoDesc="";
+function ownFoods(){
+  const pr=CL.store.S.profile;
+  return dedupe([...(pr.favorites||[]), ...(pr.recents||[]), ...CL.store.S.myFoods]).filter(f=>f && f.kcal>=0 && f.src!=="photo-meal");
 }
 async function onPhoto(file){
   if (!file) return;
@@ -560,7 +594,7 @@ async function onPhoto(file){
     } catch(e){ createFood({name:hint, barcode}, CL.claude.errorText(e)); }
   } else {
     I.openSheet({title:"Estimating your meal", body:'<div class="loading"><span class="spinner"></span>Claude is estimating what\'s on the plate…</div><p class="hint">Usually takes 10–20 seconds.</p>'});
-    try { mealEstimate(await CL.claude.estimateMeal(file)); }
+    try { mealEstimate(await CL.claude.estimateMeal(file, photoDesc, ownFoods())); }
     catch(e){ I.setSheet({title:"Meal photo", body:'<p class="notice">'+esc(CL.claude.errorText(e))+'</p><button type="button" class="btn block" id="goBack">Back</button>'}); $("goBack").onclick=()=>showSearch(""); }
   }
 }
