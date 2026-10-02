@@ -414,3 +414,15 @@ details.math li span{display:block;font-size:13px;color:var(--muted)}
 .fitsum{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--accent-soft);border-radius:14px;padding:12px;text-align:center}
 .fitsum b{display:block;font-size:22px}
 .fitsum span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+
+/* First-week coach */
+.coach b{display:block;font-size:17px;margin:2px 0 4px}
+.coach p{font-size:14px;color:var(--muted)}
+.coach .cardhead{margin-bottom:4px}
+.coach .dots{display:flex;gap:5px;margin-top:12px}
+.coach .dots i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.coach .dots i.on{background:var(--accent)}
+/* Type several foods */
+.res.static{cursor:default}
+.res.miss .nm{color:var(--muted)}
+.results.multi+.btn{margin-top:10px}

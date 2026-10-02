@@ -57,14 +57,16 @@ function closeSheet(){
 function sheetOpen(){ return !$("sheet").hidden; }
 
 /* ---------- Cook mode: keep the screen on while a recipe is open ---------- */
-let wakeLock=null;
+let wakeLock=null, wakeBusy=false;
 async function syncWake(){
-  if (!("wakeLock" in navigator)) return;
+  if (!("wakeLock" in navigator) || wakeBusy) return;
   const need=!document.hidden && [...document.querySelectorAll("details.recipe[open]")].some(d=>d.offsetParent!==null);
+  wakeBusy=true;
   try {
-    if (need && !wakeLock){ wakeLock=await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", ()=>{ wakeLock=null; }); }
+    if (need && !wakeLock){ const w=await navigator.wakeLock.request("screen"); wakeLock=w; w.addEventListener("release", ()=>{ if (wakeLock===w) wakeLock=null; }); }
     else if (!need && wakeLock){ const w=wakeLock; wakeLock=null; await w.release(); }
   } catch(e){ wakeLock=null; }
+  finally { wakeBusy=false; }
 }
 document.addEventListener("toggle", syncWake, true);
 document.addEventListener("visibilitychange", syncWake);

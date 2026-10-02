@@ -113,7 +113,7 @@ function nudgeCard(date, G, T){
     if (!day.entries.length) rows.push('<li><div class="grow"><b>Nothing logged today</b><div class="hint">A rough log beats none. Quick add takes 5 seconds.</div></div><button type="button" class="btn small soft" data-add="Dinner">Log food</button></li>');
     else if (!has("Dinner")) rows.push('<li><div class="grow"><b>Log dinner</b><div class="hint">'+(G.goal-T.kcal>0? U.fmt(G.goal-T.kcal)+" kcal left for today" : "Close out the day")+'</div></div><button type="button" class="btn small soft" data-add="Dinner">'+icon("plus")+'Dinner</button></li>');
     const left=G.goal-T.kcal;
-    if (day.entries.length && has("Dinner") && left>150) rows.push('<li><div class="grow"><b>'+U.fmt(left)+' kcal left</b><div class="hint">Room for a snack if you\'re hungry. Under is fine too; it banks for the week.</div></div><button type="button" class="btn small soft" data-fits="1">What fits?</button></li>');
+    if (day.entries.length && has("Dinner") && left>150) rows.push('<li><div class="grow"><b>'+U.fmt(left)+' kcal left</b><div class="hint">Room for a snack if you\'re hungry. Under is fine too; it banks for the week.</div></div><button type="button" class="btn small soft" data-fits="Snacks">What fits?</button></li>');
   }
   if (!rows.length) return "";
   return '<section class="card nudge"><div class="cardhead"><h2>'+(part==="am"? icon("sun")+"Morning check-in" : icon("check")+"Evening check-in")+'</h2>'+
@@ -137,14 +137,16 @@ function milestone(){
   const tr=CL.math.trend(S.weights), first=tr[0].kg, now=tr[tr.length-1].trend;
   const us=CL.store.isUS(), step=us? 5*U.KG_PER_LB : 2, unit=CL.store.wUnit();
   const lost=first-now, level=Math.floor(lost/step+0.001);
-  const goalKg=S.health && S.health.goalKg;
+  const p=CL.math.currentPlan();
+  const goalKg=(p && p.goalKg) || (S.health && S.health.goalKg) || null;
+  const losing= goalKg? goalKg<first : !!(p && p.lose);    // the plan flips to maintain on the scale, a few days before the trend
   const atGoal=goalKg && goalKg<first && now<=goalKg;
-  const half=goalKg && goalKg<first-step && lost>=(first-goalKg)/2;
+  const half=losing && !atGoal && goalKg && goalKg<first-step && lost>=(first-goalKg)/2;
   const key= atGoal? "goal" : level>=1? "L"+level : null;
   const halfKey= half? "half" : null;
   const seen=pr.msSeen||[];
-  if (atGoal && !seen.includes("goal") || !atGoal && level>(pr.msLevel||0)){
-    if (atGoal) return {key, level, title:"You reached your goal weight", text:"Your trend weight is at "+CL.store.wFmt(now)+" "+unit+". Head to Me to switch your plan to maintaining, so the target stops cutting."};
+  if (atGoal && !seen.includes("goal") || !atGoal && losing && level>(pr.msLevel||0)){
+    if (atGoal) return {key, level, title:"You reached your goal weight", text:"Your trend weight is at "+CL.store.wFmt(now)+" "+unit+". Your plan now switches to maintaining, so your daily target goes up. Nice work."};
     return {key, level, title:"Down "+U.g1(CL.store.toDisp(level*step))+" "+unit+" on your trend", text:"That's real loss, not water noise. Whatever you've been doing is working, so keep it boring and keep going."};
   }
   if (halfKey && !seen.includes(halfKey)) return {key:halfKey, level, title:"Halfway to your goal", text:"You've lost "+U.g1(CL.store.toDisp(lost))+" "+unit+" on your trend. The second half goes the same way: one day at a time."};
@@ -163,6 +165,28 @@ function extraBanner(date){
       '<div class="row" style="margin-top:8px"><button type="button" class="btn small primary" data-backup="1">'+icon("share")+'Save backup</button><button type="button" class="btn small ghost" data-backupx="1">Later</button></div></div></section>';
   }
   return "";
+}
+
+/* First-week coach: one practical tip a day for the first 7 days of logging. */
+const COACH=[
+  ["Just log", "Don't change anything yet. Eat like normal and log it honestly, messy meals included. Today is about seeing where you start."],
+  ["Weigh in every morning", "After the bathroom, before eating. Daily swings of 1–4 lb are water and salt. The trend line on Progress does the math for you."],
+  ["Protein at breakfast", "Aim for 25–30 g in the morning: eggs, Greek yogurt, cottage cheese or a protein shake. It keeps you full until lunch."],
+  ["Watch the drinks", "Soda, juice, sweet coffee and alcohol add up fast and don't fill you up. Swap one a day for water, diet soda or black coffee."],
+  ["Plan the weekend", "Weekends are where most weeks slip. Eat a bit lighter on weekdays to bank room, and check Eating out before you go."],
+  ["Spend the treat allowance", "It's built into your target on purpose. Having something you love each day is what makes this last."],
+  ["Week one is mostly water", "Don't judge the scale yet. Your weekly check-in on Progress shows what's working, and the trend gets clearer every week."]
+];
+function coachCard(date){
+  const S=CL.store.S, pr=S.profile, today=U.today();
+  if (date!==today || pr.nudges===false || pr.coachSeen===today) return "";
+  const logged=Object.keys(S.days||{}).filter(d=>S.days[d].entries && S.days[d].entries.length).sort();
+  const start=logged[0] && logged[0]<today? logged[0] : today;
+  const n=Math.round((U.parseDay(today)-U.parseDay(start))/864e5);
+  if (n<0 || n>=COACH.length) return "";
+  const [t, body]=COACH[n];
+  return '<section class="card coach"><div class="cardhead"><span class="eyebrow">Your first week · Day '+(n+1)+' of 7</span><button type="button" class="iconbtn ghost" data-coachx="1" aria-label="Hide today\'s tip">'+icon("x")+'</button></div>'+
+    '<b>'+esc(t)+'</b><p>'+esc(body)+'</p><div class="dots" aria-hidden="true">'+COACH.map((_,i)=>'<i'+(i<=n? ' class="on"' : "")+'></i>').join("")+'</div></section>';
 }
 
 function mealCard(date, meal){
@@ -208,6 +232,8 @@ function render(){
     (G.flex? '<p class="flexnote">'+icon("gift")+'Includes a '+U.fmt(G.flex)+' kcal treat allowance. Spend it on anything.</p>' : "")+
     (date===today && T.kcal>0? '<button type="button" class="fitcta" data-fits="1">'+icon("search")+(left>0? 'What fits in '+U.fmt(left)+' kcal?' : 'Still hungry? See the lightest picks')+icon("right")+'</button>' : "")+'</section>';
 
+  x+=coachCard(date);
+
   // Same as yesterday?
   const yd=U.addDays(date,-1), ydN=CL.store.peekDay(yd).entries.length;
   if (!CL.store.peekDay(date).entries.length && ydN){
@@ -247,8 +273,9 @@ function onClick(ev){
   if (b.dataset.logplan){ CL.planUI.logSlot(date, b.dataset.logplan); return; }
   if (b.dataset.nscan){ CL.add.open({meal:b.dataset.nscan, date}); CL.add.openScanner(); return; }
   if (b.dataset.nudgex){ CL.store.S.profile.nudgeHide=U.today()+":"+b.dataset.nudgex; CL.store.changed(); return; }
-  if (b.dataset.ms){ const pr=CL.store.S.profile, m=milestone(); if (b.dataset.ms==="goal" || b.dataset.ms==="half") pr.msSeen=[...(pr.msSeen||[]), b.dataset.ms]; pr.msLevel=Math.max(pr.msLevel||0, m? m.level : 0); CL.store.changed(); return; }
-  if (b.dataset.fits){ CL.add.whatFits({date}); return; }
+  if (b.dataset.ms){ const pr=CL.store.S.profile, m=milestone(); if (b.dataset.ms==="goal" || b.dataset.ms==="half") pr.msSeen=[...(pr.msSeen||[]), b.dataset.ms, ...(b.dataset.ms==="goal"? ["half"] : [])]; pr.msLevel=Math.max(pr.msLevel||0, m? m.level : 0); CL.store.changed(); return; }
+  if (b.dataset.coachx){ CL.store.S.profile.coachSeen=U.today(); CL.store.changed(); return; }
+  if (b.dataset.fits){ CL.add.whatFits({date, meal:b.dataset.fits==="Snacks"? "Snacks" : null}); return; }
   if (b.dataset.backup){ CL.me.backupNow(); return; }
   if (b.dataset.backupx){ CL.store.S.profile.backupSnooze=U.addDays(U.today(), 7); CL.store.changed(); return; }
   if (b.dataset.review){ CL.store.S.profile.reviewSeen=U.addDays(U.weekStart(U.today()), -7); CL.progress.resetWeek(); CL.store.changed(); CL.app.setTab("progress"); return; }

@@ -19,6 +19,54 @@ function fastFoods(){
 function matches(f, words){ const t=(f.name+" "+(f.brand||"")).toLowerCase(); return words.every(w=>t.includes(w)); }
 function dedupe(list){ const seen=new Set(); return list.filter(f=>{ const k=I.foodKey(f); if (seen.has(k)) return false; seen.add(k); return true; }); }
 
+/* ---------- Type several foods at once ---------- */
+const QTY_WORDS={a:1, an:1, one:1, two:2, three:3, four:4, five:5, six:6, half:0.5, "½":0.5, "¼":0.25};
+const SKIP_WORDS=new Set(["of","cup","cups","slice","slices","piece","pieces","tbsp","tsp","oz","scoop","scoops","serving","servings","bowl","glass","small","medium","large","some","with"]);
+const SYNONYMS={toast:"bread", oj:"orange juice", pb:"peanut butter", shake:"protein shake", fries:"french fries", coke:"cola", yoghurt:"yogurt"};
+let multi=[];
+function norm(w){ return w.toLowerCase().replace(/[^a-z0-9½¼]/g,"").replace(/ies$/,"y").replace(/([^s])s$/,"$1"); }
+function splitItems(q){
+  const parts=q.split(/\s*(?:,|\+|;|\band\b|\n)\s*/i).map(t=>t.trim()).filter(Boolean);
+  return parts.length>=2? parts : null;
+}
+function parseItem(text){
+  let t=text.toLowerCase().trim(), qty=1;
+  const m=t.match(/^(\d+\/\d+|\d+(?:\.\d+)?|½|¼|a|an|one|two|three|four|five|six|half)(?=\s|$)\s*(?:a\s+|an\s+)?/);
+  if (m){ const v=m[1]; qty= QTY_WORDS[v]!=null? QTY_WORDS[v] : v.includes("/")? (+v.split("/")[0])/(+v.split("/")[1]) : +v; t=t.slice(m[0].length); }
+  const x=t.match(/\s*x\s*(\d+(?:\.\d+)?)$/); if (x){ qty*=+x[1]; t=t.slice(0, x.index); }
+  let words=t.split(/\s+/).filter(w=>w && !SKIP_WORDS.has(w));
+  words=words.flatMap(w=>(SYNONYMS[w]||w).split(" ")).map(norm).filter(Boolean);
+  return {text, qty:qty>0 && qty<50? qty : 1, words};
+}
+function bestFood(words, pool){
+  if (!words.length) return null;
+  let best=null, bestExtra=1e9;
+  for (const f of pool){
+    const toks=(f.name+" "+(f.brand||"")).split(/[\s,()\/&-]+/).map(norm).filter(Boolean);
+    const ok=words.every(w=>toks.some(t=>t===w || (w.length>=4 && t.startsWith(w))));
+    if (!ok) continue;
+    const extra=toks.length-words.length;
+    if (extra<bestExtra){ best=f; bestExtra=extra; }
+  }
+  return best;
+}
+function multiHTML(q){
+  const items=splitItems(q); multi=[];
+  if (!items) return "";
+  const pr=CL.store.S.profile;
+  const pool=dedupe([...(pr.favorites||[]), ...(pr.recents||[]), ...CL.store.S.myFoods, ...CL.FOODS, ...recipeFoods(), ...fastFoods()]);
+  multi=items.map(t=>{
+    const p=parseItem(t), food=bestFood(p.words, pool);
+    if (food && /^½\s/.test(food.serving||"")) p.qty*=2;      // "½ avocado" when the serving is already half of one
+    return Object.assign(p, {food});
+  });
+  const found=multi.filter(m=>m.food), kcal=found.reduce((a,m)=>a+I.scaleFood(m.food, m.qty).kcal,0);
+  return '<div class="group-t">Log them all</div><ul class="results multi">'+multi.map(m=>m.food
+      ? '<li><div class="res static"><div class="grow"><div class="nm">'+(m.qty!==1? U.frac(m.qty)+" × " : "")+esc(m.food.name)+'</div><div class="sub">'+esc([m.food.brand, m.food.serving].filter(Boolean).join(" · "))+'</div></div><span class="kc num">'+U.fmt(I.scaleFood(m.food, m.qty).kcal)+'</span></div></li>'
+      : '<li><div class="res static miss"><div class="grow"><div class="nm">“'+esc(m.text)+'”</div><div class="sub">No match. Search it on its own after.</div></div></div></li>').join("")+'</ul>'+
+    (found.length? '<button type="button" class="btn primary block" data-multi="1">'+icon("plus")+'Add '+found.length+(found.length===1? " item" : " items")+' · '+U.fmt(kcal)+' kcal</button>' : "");
+}
+
 function resultRow(f, i, tag){
   const sub=[f.brand, f.serving].filter(Boolean).join(" · ");
   return '<li><button type="button" class="res" data-pick="'+i+'"><div class="grow"><div class="nm">'+(tag? '<span class="tag">'+tag+'</span>' : "")+esc(f.name)+'</div><div class="sub">'+esc(sub)+'</div></div><span class="kc num">'+U.fmt(f.kcal)+'</span></button></li>';
@@ -42,6 +90,8 @@ function listHTML(q){
     if (!S.meals.length && !favs.length && !recents.length) x+='<p class="hint">Search for a food, scan a barcode, or use Quick add if you just know the calories. Foods you log show up here next time.</p>';
     return x;
   }
+  const many=multiHTML(q);
+  if (many) return many+'<p class="fine">Tip: separate foods with commas. Start with a number for more than one, like “2 eggs”.</p>';
   const meals=S.meals.map((m,i)=>[m,i]).filter(([m])=>matches({name:m.name}, words));
   const mine=dedupe([...(pr.favorites||[]), ...(pr.recents||[]), ...S.myFoods]).filter(f=>matches(f, words)).slice(0,15);
   const common=CL.FOODS.filter(f=>matches(f, words)).slice(0,10);
@@ -82,7 +132,7 @@ function showSearch(q){
       '<button type="button" data-act="label">'+icon("camera")+'Label photo</button>'+
       '<button type="button" data-act="mealphoto">'+icon("sparkle")+'Meal photo</button>'+
     '</div>'+
-    '<form class="searchbox" id="addSearch"><input type="search" id="addQ" placeholder="Search foods" value="'+esc(q)+'" autocomplete="off" enterkeyhint="search" aria-label="Search foods"></form>'+
+    '<form class="searchbox" id="addSearch"><input type="search" id="addQ" placeholder="Search, or type: 2 eggs, toast, coffee" value="'+esc(q)+'" autocomplete="off" enterkeyhint="search" aria-label="Search foods"></form>'+
     ((CL.FASTFOOD||[]).length? '<button type="button" class="card bookcta eatcta" data-act="eatout">'+icon("cart")+'<span class="grow"><b>Eating out?</b><span class="hint">Smart orders at '+CL.FASTFOOD.length+' chains, from their official nutrition info</span></span>'+icon("right")+'</button>' : "")+
     '<div id="addList">'+listHTML(q)+'</div>'+
     '<button type="button" class="btn block" data-act="create">'+icon("pen")+'Create a food from its label</button>'+
@@ -94,13 +144,20 @@ function refreshList(){ const q=($("addQ")||{}).value||""; const l=$("addList");
 
 function wireSearch(el){
   el.oninput=e=>{ if (e.target.id==="addQ") refreshList(); };
-  el.onsubmit=e=>{ e.preventDefault(); const q=$("addQ").value.trim(); if (q) searchOnline(q); $("addQ").blur(); };
+  el.onsubmit=e=>{ e.preventDefault(); const q=$("addQ").value.trim(); if (q && !splitItems(q)) searchOnline(q); $("addQ").blur(); };
   el.onclick=e=>{
     const b=e.target.closest("button"); if (!b) return;
     if (b.dataset.meal){ ctx.meal=b.dataset.meal; I.setSheet({title:"Add to "+ctx.meal.toLowerCase()}); el.querySelectorAll("[data-meal]").forEach(x=>x.setAttribute("aria-pressed", x===b)); return; }
     if (b.dataset.pick){ portion(results[+b.dataset.pick]); return; }
     if (b.dataset.pickmeal){ savedMeal(+b.dataset.pickmeal); return; }
     if (b.dataset.online){ searchOnline($("addQ").value.trim()); return; }
+    if (b.dataset.multi){
+      const date=ctx.date, meal=ctx.meal, added=multi.filter(m=>m.food).map(m=>I.addEntry(date, m.food, m.qty, meal).id);
+      const missed=multi.filter(m=>!m.food).map(m=>m.text);
+      I.closeSheet();
+      I.toast("Added "+added.length+(added.length===1? " item" : " items")+(missed.length? ". Not found: "+missed.join(", ") : ""), ()=>{ const d=CL.store.day(date); d.entries=d.entries.filter(e=>!added.includes(e.id)); CL.store.pruneEmptyDay(date); CL.store.changed(); });
+      return;
+    }
     const a=b.dataset.act;
     if (a==="scan") openScanner();
     else if (a==="quick") quickAdd();
@@ -120,12 +177,14 @@ function fitScore(f, left, pLeft){
 }
 function whatFits(opts){
   const date=(opts&&opts.date)||U.today();
-  ctx={date, meal:I.guessMeal()};
   const S=CL.store.S, pr=S.profile, G=CL.math.goals(), T=CL.store.dayTotals(date);
+  let meal=(opts&&opts.meal) || I.guessMeal();
+  if (!(opts&&opts.meal) && meal!=="Snacks" && CL.store.peekDay(date).entries.some(e=>e.meal===meal)) meal="Snacks";   // that meal's already logged
+  ctx={date, meal};
   const left=Math.round(G.goal-T.kcal), pLeft=Math.round((G.protein||0)-T.protein);
   results=[];
   const push=f=>{ results.push(f); return results.length-1; };
-  const room=Math.max(left, 150);                            // at or over target: show the lightest options
+  const room=left>0? left : 150;                             // at or over target: show the lightest options
   const ok=f=>f && f.kcal>=30 && f.kcal<=room && !NOT_A_SNACK.test(f.name);
   const rank=list=>dedupe(list.filter(ok)).map(f=>[f, fitScore(f, room, pLeft)]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
   const row=f=>'<li><button type="button" class="res" data-pick="'+push(f)+'"><div class="grow"><div class="nm">'+esc(f.name)+'</div><div class="sub">'+esc([f.brand, f.serving].filter(Boolean).join(" · "))+' · '+Math.round(f.protein)+' g protein</div></div><span class="kc num">'+U.fmt(f.kcal)+'</span></button></li>';

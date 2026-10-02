@@ -129,7 +129,7 @@ function waistCard(){
   else if (last) x+='<p class="hint" style="margin-bottom:10px">Started at <b>'+disp(last.cm)+' '+u+'</b> on '+esc(U.shortDate(last.date))+'. Measure again next week to see the change.</p>';
   else x+='<p class="hint" style="margin-bottom:10px">When the scale stalls, your waist often keeps shrinking. Measure around your belly button, relaxed, not sucked in.</p>';
   x+='<form class="row" id="waistForm" style="flex-wrap:nowrap"><input type="number" id="waistVal" inputmode="decimal" step="0.1" placeholder="Waist ('+u+')" aria-label="Waist in '+u+'" style="flex:1"><button class="btn'+(due? " primary" : "")+'" type="submit">Save</button></form>';
-  if (list.length) x+='<ul class="wlist" style="margin-top:8px">'+list.slice(-4).reverse().map(w=>'<li><span>'+esc(U.shortDate(w.date,{weekday:"short", month:"short", day:"numeric"}))+'</span><b class="num">'+disp(w.cm)+' '+u+'</b><button type="button" class="iconbtn ghost" data-waistdel="'+w.date+'" aria-label="Delete waist measurement from '+esc(U.shortDate(w.date))+'">'+icon("x")+'</button></li>').join("")+'</ul>';
+  if (list.length) x+='<ul class="wlist" style="margin-top:8px">'+list.slice(-4).reverse().map(w=>'<li><span>'+esc(U.shortDate(w.date,{weekday:"short", month:"short", day:"numeric"}))+'</span><b class="num">'+disp(w.cm)+' '+u+'</b><button type="button" class="iconbtn ghost" data-waistdel="'+esc(w.date)+'" aria-label="Delete waist measurement from '+esc(U.shortDate(w.date))+'">'+icon("x")+'</button></li>').join("")+'</ul>';
   return x+'</section>';
 }
 
